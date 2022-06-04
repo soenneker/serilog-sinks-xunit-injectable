@@ -1,3 +1,6 @@
+[![Build Status](https://dev.azure.com/soenneker/serilog-sinks-xunit-injectable/_apis/build/status/soenneker.serilog-sinks-xunit-injectable?branchName=main)](https://dev.azure.com/soenneker/serilog-sinks-xunit-injectable/_build/latest?definitionId=1&branchName=main)
+[![NuGet Version](https://img.shields.io/nuget/v/Serilog.Sinks.XUnit.Injectable.svg?style=flat)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
+
 # serilog-sinks-xunit-injectable
 ### The injectable, Serilog xUnit test output sink
 
