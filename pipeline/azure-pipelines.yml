@@ -9,7 +9,7 @@ trigger:
     - src/*
     - test/*
     - pipeline/*
-    
+
 pool:
   name: Azure Pipelines
   vmImage: 'windows-2019'
@@ -19,7 +19,7 @@ variables:
   verbosity: 'Normal'
 
 stages:
-- stage: 'Build and Deploy'
+- stage: build
   jobs:
   - job: build
     displayName: 'Build and Deploy'
