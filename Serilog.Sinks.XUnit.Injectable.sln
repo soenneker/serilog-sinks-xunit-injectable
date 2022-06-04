@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32519.379
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Serilog.Sinks.XUnit.Injectable", "src\Serilog.Sinks.XUnit.Injectable\Serilog.Sinks.XUnit.Injectable.csproj", "{0285CF05-40F5-4060-99AA-187A38F75929}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{A003E1F4-CBA6-4503-B7F7-E3FC47DA2F93}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{C5A21B13-75F9-42C4-8541-5F17BD7FFD68}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Serilog.Sinks.XUnit.Injectable.Tests", "test\Serilog.Sinks.XUnit.Injectable.Tests\Serilog.Sinks.XUnit.Injectable.Tests.csproj", "{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApi", "test\SampleApi\SampleApi.csproj", "{B3297E53-A270-49CE-90D2-C08F714D6C1B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Debug|x64.ActiveCfg = Debug|x64
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Debug|x64.Build.0 = Debug|x64
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Release|x64.ActiveCfg = Release|x64
+		{0285CF05-40F5-4060-99AA-187A38F75929}.Release|x64.Build.0 = Release|x64
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Debug|x64.Build.0 = Debug|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Release|x64.ActiveCfg = Release|Any CPU
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD}.Release|x64.Build.0 = Release|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Debug|x64.Build.0 = Debug|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Release|x64.ActiveCfg = Release|Any CPU
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{0285CF05-40F5-4060-99AA-187A38F75929} = {A003E1F4-CBA6-4503-B7F7-E3FC47DA2F93}
+		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD} = {C5A21B13-75F9-42C4-8541-5F17BD7FFD68}
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B} = {C5A21B13-75F9-42C4-8541-5F17BD7FFD68}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {425C68EB-8680-46C6-A9AA-80910692A064}
+	EndGlobalSection
+EndGlobal

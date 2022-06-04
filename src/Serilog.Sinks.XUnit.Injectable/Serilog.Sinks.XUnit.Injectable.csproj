@@ -1,0 +1,43 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<NoWarn>$(NoWarn);1591</NoWarn>
+		<Configurations>Release;Debug</Configurations>
+		<Platforms>x64;AnyCPU</Platforms>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Description>The injectable, xUnit test output sink for Serilog</Description>
+		<VersionPrefix Condition="'$(BUILD_BUILDNUMBER)' == ''">1.0.0</VersionPrefix>
+		<VersionPrefix Condition="'$(BUILD_BUILDNUMBER)' != ''">$(BUILD_BUILDNUMBER)</VersionPrefix>
+		<AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
+		<PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
+		<PackageTags>logging Serilog xUnit output ITestOutputHelper</PackageTags>
+		<Copyright>Copyright © 2022 Jake Soenneker</Copyright>
+		<Authors>Jake Soenneker</Authors>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<EmbedUntrackedSources>true</EmbedUntrackedSources>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<IsPackable>true</IsPackable>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageProjectUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</PackageProjectUrl>
+		<RepositoryUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</RepositoryUrl>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+		<LangVersion>latest</LangVersion>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+		<PackageReference Include="Serilog" Version="2.11.0" />
+		<PackageReference Include="xunit.abstractions" Version="2.0.3" />
+		<PackageReference Include="xunit.core" Version="2.4.1" />
+	</ItemGroup>
+
+</Project>
