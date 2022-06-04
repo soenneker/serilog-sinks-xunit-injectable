@@ -27,6 +27,7 @@
 		<RepositoryUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 		<LangVersion>latest</LangVersion>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
@@ -34,6 +35,8 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 		<PackageReference Include="Serilog" Version="2.11.0" />
 		<PackageReference Include="xunit.abstractions" Version="2.0.3" />
