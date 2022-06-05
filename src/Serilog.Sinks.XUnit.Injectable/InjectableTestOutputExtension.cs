@@ -3,6 +3,7 @@ using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.XUnit.Injectable.Sinks;
+using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
 using Xunit.Abstractions;
 
 namespace Serilog.Sinks.XUnit.Injectable;
@@ -29,7 +30,7 @@ public static class InjectableTestOutputExtension
     ///     to be changed at runtime.
     /// </param>
     /// <returns>Configuration object allowing method chaining.</returns>
-    public static LoggerConfiguration InjectableTestOutput(this LoggerSinkConfiguration sinkConfiguration, InjectableTestOutputSink sink,
+    public static LoggerConfiguration InjectableTestOutput(this LoggerSinkConfiguration sinkConfiguration, IInjectableTestOutputSink sink,
         LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum, LoggingLevelSwitch? levelSwitch = null)
     {
         if (sinkConfiguration == null)
