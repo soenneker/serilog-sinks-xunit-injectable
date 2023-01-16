@@ -26,14 +26,8 @@ jobs:
         with:
           dotnet-version: 7.0.x
 
-      - name: Install dependencies
-        run: dotnet restore
-
       - name: Build
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test --no-restore --verbosity normal
+        run: dotnet build src\Serilog.Sinks.XUnit.Injectable\Serilog.Sinks.Xunit.Injectable.csproj --configuration Release
 
   publish-package:
     needs: build-and-test

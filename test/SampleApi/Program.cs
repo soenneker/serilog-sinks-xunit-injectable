@@ -27,7 +27,7 @@ public class Program
     /// </summary>
     public static IHostBuilder CreateHostBuilder(string[] args)
     {
-        IHostBuilder? hostBuilder = Host.CreateDefaultBuilder(args);
+        IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args);
 
         hostBuilder.UseSerilog((_, services, loggerConfig) =>
         {
