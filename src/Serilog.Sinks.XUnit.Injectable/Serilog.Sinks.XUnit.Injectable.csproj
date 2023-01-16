@@ -17,7 +17,7 @@
 		<Copyright>Copyright © 2023 Jake Soenneker</Copyright>
 		<Authors>Jake Soenneker</Authors>
         <Company>soenneker.com</Company>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile> 
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<IncludeSymbols>true</IncludeSymbols>
 		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
