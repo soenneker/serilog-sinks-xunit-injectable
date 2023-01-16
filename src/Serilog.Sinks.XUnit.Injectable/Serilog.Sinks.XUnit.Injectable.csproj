@@ -9,8 +9,8 @@
 
 	<PropertyGroup>
 		<Description>The injectable, xUnit test output sink for Serilog</Description>
-		<VersionPrefix Condition="'$(BUILD_BUILDNUMBER)' == ''">1.0.0</VersionPrefix>
-		<VersionPrefix Condition="'$(BUILD_BUILDNUMBER)' != ''">$(BUILD_BUILDNUMBER)</VersionPrefix>
+        <Version Condition="'$(BUILD_VERSION)' == ''">1.0.0</Version>
+        <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
 		<AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
 		<PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
 		<PackageTags>logging serilog xunit testing c# .net dotnet</PackageTags>
