@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SampleApi.Utils;
 using Serilog.Sinks.XUnit.Injectable.Sinks;
 using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;

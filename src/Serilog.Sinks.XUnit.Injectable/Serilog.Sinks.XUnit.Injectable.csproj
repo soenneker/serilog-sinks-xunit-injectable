@@ -4,8 +4,7 @@
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<NoWarn>$(NoWarn);1591</NoWarn>
-		<Configurations>Release;Debug</Configurations>
-		<Platforms>x64;AnyCPU</Platforms>
+        <Platforms>AnyCPU</Platforms>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -14,9 +13,10 @@
 		<VersionPrefix Condition="'$(BUILD_BUILDNUMBER)' != ''">$(BUILD_BUILDNUMBER)</VersionPrefix>
 		<AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
 		<PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
-		<PackageTags>logging Serilog xUnit output ITestOutputHelper</PackageTags>
-		<Copyright>Copyright © 2022 Jake Soenneker</Copyright>
+		<PackageTags>logging serilog xunit testing c# .net dotnet</PackageTags>
+		<Copyright>Copyright © 2023 Jake Soenneker</Copyright>
 		<Authors>Jake Soenneker</Authors>
+        <Company>soenneker.com</Company>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<EmbedUntrackedSources>true</EmbedUntrackedSources>
 		<IncludeSymbols>true</IncludeSymbols>
@@ -26,16 +26,16 @@
 		<PackageProjectUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</PackageProjectUrl>
 		<RepositoryUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</RepositoryUrl>
 		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
 		<LangVersion>latest</LangVersion>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
-		<ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+        <PackageIcon>icon.png</PackageIcon>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
+        <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
 
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
 		<PackageReference Include="Serilog" Version="2.10.0" />

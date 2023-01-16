@@ -4,6 +4,7 @@ using Xunit.Abstractions;
 namespace Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
 
 /// <summary>
+/// A sink to direct Serilog output to the XUnit test output via dependency injection <para/>
 /// Use as a Singleton
 /// </summary>
 public interface IInjectableTestOutputSink : ILogEventSink

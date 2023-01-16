@@ -2,7 +2,6 @@
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Sinks.XUnit.Injectable.Sinks;
 using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
 using Xunit.Abstractions;
 

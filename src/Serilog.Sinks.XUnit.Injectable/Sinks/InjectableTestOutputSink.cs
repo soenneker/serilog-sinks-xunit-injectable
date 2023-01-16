@@ -11,9 +11,7 @@ using Xunit.Sdk;
 
 namespace Serilog.Sinks.XUnit.Injectable.Sinks;
 
-/// <summary>
-///     A sink to direct Serilog output to the XUnit test output via dependency injection mechanisms
-/// </summary>
+/// <inheritdoc cref="IInjectableTestOutputSink"/>
 public class InjectableTestOutputSink : IInjectableTestOutputSink
 {
     private readonly Stack<LogEvent> _cachedLogEvents;
@@ -35,7 +33,6 @@ public class InjectableTestOutputSink : IInjectableTestOutputSink
         _textFormatter = new MessageTemplateTextFormatter(InjectableTestOutputExtension.DefaultConsoleOutputTemplate, formatProvider);
     }
 
-    /// <inheritdoc />
     public void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null)
     {
         _testOutputHelper = testOutputHelper;

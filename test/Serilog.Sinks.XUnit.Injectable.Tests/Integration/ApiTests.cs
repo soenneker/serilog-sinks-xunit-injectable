@@ -1,6 +1,5 @@
 ﻿using System.Net.Http;
 using System.Threading.Tasks;
-using SampleApi;
 using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
 using Xunit;
 using Xunit.Abstractions;
