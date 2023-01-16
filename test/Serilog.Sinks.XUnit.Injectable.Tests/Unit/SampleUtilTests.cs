@@ -12,10 +12,10 @@ public class SampleUtilTests
 
     public SampleUtilTests(UnitFixture fixture, ITestOutputHelper testOutputHelper)
     {
-        var outputSink = (IInjectableTestOutputSink)fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink));
+        var outputSink = (IInjectableTestOutputSink)fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
         outputSink.Inject(testOutputHelper);
 
-        _util = (SampleUtil)fixture.ServiceProvider.GetService(typeof(SampleUtil));
+        _util = (SampleUtil)fixture.ServiceProvider.GetService(typeof(SampleUtil))!;
     }
 
     [Fact]

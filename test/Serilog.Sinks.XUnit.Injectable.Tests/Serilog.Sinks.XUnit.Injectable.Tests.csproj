@@ -1,32 +1,29 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-	  <Nullable>enable</Nullable>
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
 
-    <IsPackable>false</IsPackable>
+    <ItemGroup>
+        <PackageReference Include="AutoBogus.Moq" Version="2.13.1" />
+        <PackageReference Include="FluentAssertions" Version="6.9.0" />
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="7.0.2" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.1" />
+        <PackageReference Include="Serilog.AspNetCore" Version="6.1.0" />
+        <PackageReference Include="xunit" Version="2.4.2" />
+        <PackageReference Include="coverlet.collector" Version="3.2.0">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+    </ItemGroup>
 
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="AutoBogus.Moq" Version="2.13.1" />
-    <PackageReference Include="FluentAssertions" Version="6.7.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.5" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.2.0" />
-    <PackageReference Include="NSubstitute" Version="4.3.0" />
-    <PackageReference Include="Serilog.AspNetCore" Version="5.0.0" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="coverlet.collector" Version="3.1.2">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\src\Serilog.Sinks.XUnit.Injectable\Serilog.Sinks.XUnit.Injectable.csproj" />
-    <ProjectReference Include="..\SampleApi\SampleApi.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\Serilog.Sinks.XUnit.Injectable\Serilog.Sinks.XUnit.Injectable.csproj" />
+        <ProjectReference Include="..\SampleApi\SampleApi.csproj" />
+    </ItemGroup>
 
 </Project>
