@@ -1,11 +1,11 @@
-[![Build Status](https://dev.azure.com/soenneker/serilog-sinks-xunit-injectable/_apis/build/status/soenneker.serilog-sinks-xunit-injectable?branchName=main)](https://dev.azure.com/soenneker/serilog-sinks-xunit-injectable/_build/latest?definitionId=1&branchName=main)
-[![NuGet Version](https://img.shields.io/nuget/v/Serilog.Sinks.XUnit.Injectable.svg?style=flat)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
+[![](https://img.shields.io/nuget/v/Serilog.Sinks.XUnit.Injectable.svg?style=for-the-badge)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/serilog-sinks-xunit-injectable/main.yml?style=for-the-badge)](https://github.com/soenneker/serilog-sinks-xunit-injectable/actions/workflows/main.yml)
+[![](https://img.shields.io/nuget/dt/Serilog.Sinks.XUnit.Injectable.svg?style=for-the-badge)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
 
-# serilog-sinks-xunit-injectable
+# Serilog.Sinks.XUnit.Injectable
 ### The injectable, Serilog xUnit test output sink
 
-## What is it?
-Similar to [serilog-sinks-xunit](https://github.com/trbenning/serilog-sinks-xunit), it allows for utilizing xUnit's [`TestOutputHelper`](https://xunit.net/docs/capturing-output) across tests that share state.
+Leverage xUnit's [`TestOutputHelper`](https://xunit.net/docs/capturing-output) across tests that share state
 
 ### Common use cases
 - Integration tests (i.e. [`WebApplicationFactory`](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0))
