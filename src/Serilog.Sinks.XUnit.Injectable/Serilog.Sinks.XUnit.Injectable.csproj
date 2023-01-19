@@ -37,8 +37,8 @@
         <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
 
 		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-		<PackageReference Include="Serilog" Version="2.10.0" />
+		<PackageReference Include="Serilog" Version="2.12.0" />
 		<PackageReference Include="xunit.abstractions" Version="2.0.3" />
-		<PackageReference Include="xunit.core" Version="2.4.0" />
+		<PackageReference Include="xunit.core" Version="2.4.2" />
 	</ItemGroup>
 </Project>
