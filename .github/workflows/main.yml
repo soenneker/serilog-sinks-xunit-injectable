@@ -17,7 +17,7 @@ jobs:
   # Build, test and publish (if this is a push/merge).
   build-and-test:
     runs-on: ubuntu-latest
-  
+
     steps:
       - uses: actions/checkout@v3
 
@@ -33,7 +33,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test ~/test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity normal
+        run: dotnet test --no-restore -v:quiet
 
   publish-package:
     needs: build-and-test
