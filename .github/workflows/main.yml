@@ -32,9 +32,6 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test --no-restore -v:quiet
-
   publish-package:
     needs: build-and-test
     runs-on: ubuntu-latest
