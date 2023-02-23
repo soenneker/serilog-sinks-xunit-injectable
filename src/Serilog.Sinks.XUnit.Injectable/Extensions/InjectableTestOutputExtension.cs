@@ -2,10 +2,10 @@
 using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
-using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Xunit.Abstractions;
 
-namespace Serilog.Sinks.XUnit.Injectable;
+namespace Serilog.Sinks.XUnit.Injectable.Extensions;
 
 /// <summary>
 ///     Adds the WriteTo.InjectableTestOutput() extension method to <see cref="LoggerConfiguration" />.

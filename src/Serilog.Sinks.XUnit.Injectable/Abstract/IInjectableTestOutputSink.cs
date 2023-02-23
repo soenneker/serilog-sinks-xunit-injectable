@@ -1,7 +1,8 @@
 ﻿using Serilog.Core;
+using Serilog.Events;
 using Xunit.Abstractions;
 
-namespace Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+namespace Serilog.Sinks.XUnit.Injectable.Abstract;
 
 /// <summary>
 /// A sink to direct Serilog output to the XUnit test output via dependency injection <para/>
@@ -16,4 +17,12 @@ public interface IInjectableTestOutputSink : ILogEventSink
     /// <param name="testOutputHelper">The <see cref="ITestOutputHelper" /> that will be written to.</param>
     /// <param name="messageSink"> The xUnit message sink for diagnostic messages.</param>
     void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null);
+
+    /// <summary>
+    ///     Emits the event unless testOutputHelper is null. In that case, it caches it for later (and then emits them all when
+    ///     it's not) <para/>
+    ///     Will NOT cache IMessageSink log events.
+    /// </summary>
+    /// <param name="logEvent">The event being logged</param>
+    new void Emit(LogEvent logEvent);
 }

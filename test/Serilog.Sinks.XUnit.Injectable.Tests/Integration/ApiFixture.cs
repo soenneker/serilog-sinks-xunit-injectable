@@ -2,8 +2,8 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using SampleApi;
-using Serilog.Sinks.XUnit.Injectable.Sinks;
-using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Extensions;
 using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Integration;

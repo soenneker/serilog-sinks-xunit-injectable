@@ -1,8 +1,8 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SampleApi.Utils;
-using Serilog.Sinks.XUnit.Injectable.Sinks;
-using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Extensions;
 using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Unit;

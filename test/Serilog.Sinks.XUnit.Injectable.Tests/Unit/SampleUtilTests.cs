@@ -1,5 +1,5 @@
 ﻿using SampleApi.Utils;
-using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Xunit;
 using Xunit.Abstractions;
 

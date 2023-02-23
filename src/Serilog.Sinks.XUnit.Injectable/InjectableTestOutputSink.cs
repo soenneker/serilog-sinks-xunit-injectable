@@ -5,11 +5,12 @@ using System.Linq;
 using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
-using Serilog.Sinks.XUnit.Injectable.Sinks.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Extensions;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Serilog.Sinks.XUnit.Injectable.Sinks;
+namespace Serilog.Sinks.XUnit.Injectable;
 
 /// <inheritdoc cref="IInjectableTestOutputSink"/>
 public class InjectableTestOutputSink : IInjectableTestOutputSink
@@ -39,12 +40,6 @@ public class InjectableTestOutputSink : IInjectableTestOutputSink
         _messageSink = messageSink;
     }
 
-    /// <summary>
-    ///     Emits the event unless testOutputHelper is null. In that case, it caches it for later (and then emits them all when
-    ///     it's not) <para/>
-    ///     Will NOT cache IMessageSink log events.
-    /// </summary>
-    /// <param name="logEvent">The event being logged</param>
     public void Emit(LogEvent logEvent)
     {
         if (_testOutputHelper == null)
