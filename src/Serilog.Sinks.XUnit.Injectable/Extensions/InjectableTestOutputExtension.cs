@@ -12,8 +12,6 @@ namespace Serilog.Sinks.XUnit.Injectable.Extensions;
 /// </summary>
 public static class InjectableTestOutputExtension
 {
-    public const string DefaultConsoleOutputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
-
     /// <summary>
     ///     Writes log events to <see cref="ITestOutputHelper" /> (and optionally, <see cref="IMessageSink" />) after it's been
     ///     injected.
@@ -38,7 +36,7 @@ public static class InjectableTestOutputExtension
         if (sink == null)
             throw new ArgumentNullException(nameof(sink));
 
-        var config = sinkConfiguration.Sink(sink, restrictedToMinimumLevel, levelSwitch);
+        LoggerConfiguration config = sinkConfiguration.Sink(sink, restrictedToMinimumLevel, levelSwitch);
         return config;
     }
 }

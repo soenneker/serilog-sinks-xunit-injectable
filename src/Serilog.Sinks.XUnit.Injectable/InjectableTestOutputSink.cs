@@ -6,7 +6,6 @@ using Serilog.Events;
 using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
-using Serilog.Sinks.XUnit.Injectable.Extensions;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
@@ -20,18 +19,20 @@ public class InjectableTestOutputSink : IInjectableTestOutputSink
     private IMessageSink? _messageSink;
     private ITestOutputHelper? _testOutputHelper;
 
+    private const string _defaultConsoleOutputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
+
     /// <summary>
     ///     Use this ctor for injecting into the DI container
     /// </summary>
-    /// <param name="formatProvider">
-    ///     Controls the rendering of log events into text, for example to log JSON. To
-    ///     control plain text formatting, use the overload that accepts an output template.
-    /// </param>
-    public InjectableTestOutputSink(IFormatProvider? formatProvider = null)
+    /// <param name="outputTemplate">A message template describing the format used to write to the sink.
+    /// the default is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.</param>
+    /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
+    /// <returns>Configuration object allowing method chaining.</returns>
+    public InjectableTestOutputSink(string outputTemplate = _defaultConsoleOutputTemplate, IFormatProvider? formatProvider = null)
     {
         _cachedLogEvents = new Stack<LogEvent>();
 
-        _textFormatter = new MessageTemplateTextFormatter(InjectableTestOutputExtension.DefaultConsoleOutputTemplate, formatProvider);
+        _textFormatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
     }
 
     public void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null)

@@ -39,16 +39,19 @@ public class ApiFixture : IAsyncLifetime
         ApiFactory = new WebApplicationFactory<Program>();
         ApiFactory = ApiFactory.WithWebHostBuilder(builder =>
         {
+            // Instantiate the sink, with any configuration (like outputTemplate, formatProvider)
             var injectableTestOutputSink = new InjectableTestOutputSink();
 
             builder.ConfigureServices(services =>
             {
-                services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink); // <-- register the sink
+                // Register the sink as a singleton
+                services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink); 
             });
 
             builder.UseSerilog((_, loggerConfiguration) =>
             {
-                loggerConfiguration.WriteTo.InjectableTestOutput(injectableTestOutputSink); // <-- add the sink to Serilog
+                // Add the sink to the logger configuration
+                loggerConfiguration.WriteTo.InjectableTestOutput(injectableTestOutputSink);
             });
         });
 
