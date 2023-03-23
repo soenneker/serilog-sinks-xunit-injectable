@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using SampleApi;
@@ -39,5 +40,7 @@ public class ApiFixture : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await ApiFactory.DisposeAsync();
+
+        GC.SuppressFinalize(this);
     }
 }

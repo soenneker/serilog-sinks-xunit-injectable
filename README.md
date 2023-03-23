@@ -1,5 +1,5 @@
 [![](https://img.shields.io/nuget/v/Serilog.Sinks.XUnit.Injectable.svg?style=for-the-badge)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
-[![](https://img.shields.io/github/actions/workflow/status/soenneker/serilog-sinks-xunit-injectable/main.yml?style=for-the-badge)](https://github.com/soenneker/serilog-sinks-xunit-injectable/actions/workflows/main.yml)
+[![](https://img.shields.io/github/actions/workflow/status/soenneker/serilog-sinks-xunit-injectable/publish.yml?style=for-the-badge)](https://github.com/soenneker/serilog-sinks-xunit-injectable/actions/workflows/publish.yml)
 [![](https://img.shields.io/nuget/dt/Serilog.Sinks.XUnit.Injectable.svg?style=for-the-badge)](https://www.nuget.org/packages/Serilog.Sinks.XUnit.Injectable/)
 
 # Serilog.Sinks.XUnit.Injectable
