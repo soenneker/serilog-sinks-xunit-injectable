@@ -1,4 +1,5 @@
-﻿using Serilog;
+﻿using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace SampleApi.Utils;
 
