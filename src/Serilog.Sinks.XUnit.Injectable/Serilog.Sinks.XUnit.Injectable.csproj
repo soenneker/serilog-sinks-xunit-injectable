@@ -1,44 +1,47 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFrameworks>netstandard2.1</TargetFrameworks>
-		<Nullable>enable</Nullable>
-		<NoWarn>$(NoWarn);1591</NoWarn>
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.1</TargetFrameworks>
+        <Nullable>enable</Nullable>
+        <NoWarn>$(NoWarn);1591</NoWarn>
         <Platforms>AnyCPU</Platforms>
-	</PropertyGroup>
+    </PropertyGroup>
 
-	<PropertyGroup>
-		<Description>The injectable, xUnit test output sink for Serilog</Description>
+    <PropertyGroup>
+        <Description>The injectable, xUnit test output sink for Serilog</Description>
         <Version Condition="'$(BUILD_VERSION)' == ''">1.0.0</Version>
         <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
-		<AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
-		<PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
-		<PackageTags>logging serilog xunit testing c# .net dotnet</PackageTags>
-		<Copyright>Copyright © 2023 Jake Soenneker</Copyright>
-		<Authors>Jake Soenneker</Authors>
+        <AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
+        <PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
+        <PackageTags>logging serilog xunit testing c# .net dotnet</PackageTags>
+        <Copyright>Copyright © 2023 Jake Soenneker</Copyright>
+        <Authors>Jake Soenneker</Authors>
         <Company>https://soenneker.com</Company>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile> 
-		<EmbedUntrackedSources>true</EmbedUntrackedSources>
-		<IncludeSymbols>true</IncludeSymbols>
-		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
-		<IsPackable>true</IsPackable>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<PackageProjectUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</PackageProjectUrl>
-		<RepositoryUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</RepositoryUrl>
-		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <IsPackable>true</IsPackable>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/soenneker/serilog-sinks-xunit-injectable</RepositoryUrl>
+        <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
-		<LangVersion>latest</LangVersion>
-		<PackageReadmeFile>README.md</PackageReadmeFile>
+        <LangVersion>latest</LangVersion>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
         <PackageIcon>icon.png</PackageIcon>
-	</PropertyGroup>
+    </PropertyGroup>
     <ItemGroup>
-		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+        <None Include="..\..\README.md" Pack="true" PackagePath="\" />
         <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
         <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
 
-		<PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
-		<PackageReference Include="Serilog" Version="2.12.0" />
-		<PackageReference Include="xunit.abstractions" Version="2.0.3" />
-		<PackageReference Include="xunit.core" Version="2.4.2" />
-	</ItemGroup>
+        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+
+        <PackageReference Include="Serilog" Version="2.12.0" />
+
+        <PackageReference Include="xunit.abstractions" Version="2.0.3" />
+
+        <PackageReference Include="xunit.core" Version="2.4.2" />
+    </ItemGroup>
 </Project>
