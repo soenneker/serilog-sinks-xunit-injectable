@@ -28,7 +28,7 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity normal
+        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity normal
 
   publish-package:
     needs: publish-build-and-test
@@ -38,7 +38,7 @@ jobs:
       
       - name: Setting up build version
         run: |
-          version=$(($GITHUB_RUN_NUMBER + 17))
+          version=$(($GITHUB_RUN_NUMBER))
           echo "BUILD_VERSION=1.0.$version" >> ${GITHUB_ENV}
 
       - name: Setup .NET Core 7.0
