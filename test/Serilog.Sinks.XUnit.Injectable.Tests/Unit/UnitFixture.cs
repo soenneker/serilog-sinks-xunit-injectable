@@ -15,9 +15,9 @@ public class UnitFixture : IAsyncLifetime
 
     public UnitFixture()
     {
-        var injectableTestOutputSink = new InjectableTestOutputSink();
-
         Services = new ServiceCollection();
+
+        var injectableTestOutputSink = new InjectableTestOutputSink();
 
         Services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink);
         Services.AddSingleton<SampleUtil>();

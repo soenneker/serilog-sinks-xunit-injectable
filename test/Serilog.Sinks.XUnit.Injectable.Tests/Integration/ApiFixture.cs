@@ -39,8 +39,8 @@ public class ApiFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
-        await ApiFactory.DisposeAsync();
-
         GC.SuppressFinalize(this);
+
+        await ApiFactory.DisposeAsync();
     }
 }
