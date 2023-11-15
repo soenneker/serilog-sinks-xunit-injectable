@@ -23,15 +23,13 @@ public class ApiFixture : IAsyncLifetime
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink);
+                services.AddSerilog((_, loggerConfiguration) =>
+                {
+                    loggerConfiguration.MinimumLevel.Verbose();
+                    loggerConfiguration.WriteTo.InjectableTestOutput(injectableTestOutputSink);
+                    loggerConfiguration.Enrich.FromLogContext();
+                });
             });
-#pragma warning disable CS0618
-            builder.UseSerilog((_, loggerConfiguration) =>
-            {
-                loggerConfiguration.MinimumLevel.Verbose();
-                loggerConfiguration.WriteTo.InjectableTestOutput(injectableTestOutputSink);
-                loggerConfiguration.Enrich.FromLogContext();
-            });
-#pragma warning restore
         });
 
         return Task.CompletedTask;
