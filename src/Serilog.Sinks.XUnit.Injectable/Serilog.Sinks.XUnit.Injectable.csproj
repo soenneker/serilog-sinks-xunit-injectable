@@ -9,7 +9,7 @@
 
     <PropertyGroup>
         <Description>The injectable, xUnit test output sink for Serilog</Description>
-        <Version Condition="'$(BUILD_VERSION)' == ''">2.0.0</Version>
+        <Version Condition="'$(BUILD_VERSION)' == ''">2.1.0</Version>
         <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
         <AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
         <PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>

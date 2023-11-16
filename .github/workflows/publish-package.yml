@@ -1,4 +1,4 @@
-name: Publish
+name: publish-package
 on:
   push:
     branches:
@@ -9,27 +9,6 @@ on:
       - v*
 jobs:
 
-  # Build, test and publish (if this is a push/merge).
-  publish-build-and-test:
-    runs-on: ubuntu-latest
-  
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Setup .NET 8.0
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: 8.0.x
-
-      - name: Install dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
-
-      - name: Test
-        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity normal
-
   publish-package:
     needs: publish-build-and-test
     runs-on: ubuntu-latest
@@ -39,7 +18,7 @@ jobs:
       - name: Setting up build version
         run: |
           version=$(($GITHUB_RUN_NUMBER))
-          echo "BUILD_VERSION=2.0.$version" >> ${GITHUB_ENV}
+          echo "BUILD_VERSION=2.1.$version" >> ${GITHUB_ENV}
 
       - name: Setup .NET Core 8.0
         uses: actions/setup-dotnet@v3
@@ -51,6 +30,9 @@ jobs:
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
+
+      - name: Test
+        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity normal
 
       - name: Pack
         run: dotnet pack --no-build --configuration Release --output .
