@@ -1,18 +1,19 @@
-name: Build and Test
+name: build-and-test
 on:
   # Testing - run for any PRs.
   pull_request:
     branches:
       - main
 
-jobs:
+env:
+    "PipelineEnvironment": true
 
-  # Build, test and publish (if this is a push/merge).
+jobs:
   build-and-test:
     runs-on: ubuntu-latest
-  
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup .NET 8.0
         uses: actions/setup-dotnet@v3

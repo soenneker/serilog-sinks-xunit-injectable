@@ -26,8 +26,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 		.github\workflows\reenable-automerge.yml = .github\workflows\reenable-automerge.yml
 	EndProjectSection
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sample", "sample", "{FC76A1A5-8B1F-4BCE-9111-6C0E1A08B74B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -67,7 +65,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{0285CF05-40F5-4060-99AA-187A38F75929} = {A003E1F4-CBA6-4503-B7F7-E3FC47DA2F93}
 		{E5BD20EA-F43E-4D5A-9493-19C8B12536CD} = {C5A21B13-75F9-42C4-8541-5F17BD7FFD68}
-		{B3297E53-A270-49CE-90D2-C08F714D6C1B} = {FC76A1A5-8B1F-4BCE-9111-6C0E1A08B74B}
+		{B3297E53-A270-49CE-90D2-C08F714D6C1B} = {C5A21B13-75F9-42C4-8541-5F17BD7FFD68}
 		{D786EC1A-4F59-412F-8624-83E6E3525B0C} = {4E42254D-039C-40ED-B3F4-8C1A94A366D1}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution

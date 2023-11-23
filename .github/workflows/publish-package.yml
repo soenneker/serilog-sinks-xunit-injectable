@@ -7,12 +7,16 @@ on:
     # Publish `v1.2.3` tags as releases.
     tags:
       - v*
-jobs:
 
+env:
+    "PipelineEnvironment": true
+
+jobs:
   publish-package:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Setting up build version
         run: |
