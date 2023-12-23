@@ -42,6 +42,6 @@
 
         <PackageReference Include="xunit.abstractions" Version="2.0.3" />
 
-        <PackageReference Include="xunit.core" Version="2.6.3" />
+        <PackageReference Include="xunit.core" Version="2.6.4" />
     </ItemGroup>
 </Project>
