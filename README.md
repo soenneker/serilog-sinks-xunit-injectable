@@ -23,7 +23,7 @@ Examples are provided for both Unit and Integration tests. For brevity, the actu
 ## Installation
 
 ```
-Install-Package Serilog.Sinks.XUnit.Injectable
+dotnet add package Serilog.Sinks.XUnit.Injectable
 ```
 
 ---
