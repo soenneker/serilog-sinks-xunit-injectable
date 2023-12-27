@@ -14,7 +14,7 @@
         <AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
         <PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
         <PackageTags>logging serilog xunit testing c# .net dotnet</PackageTags>
-        <Copyright>Copyright © 2023 Jake Soenneker</Copyright>
+        <Copyright>Copyright © 2024 Jake Soenneker</Copyright>
         <Authors>Jake Soenneker</Authors>
         <Company>https://soenneker.com</Company>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
