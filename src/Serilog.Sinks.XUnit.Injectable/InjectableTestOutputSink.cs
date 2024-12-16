@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using Serilog.Events;
-using Serilog.Formatting;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
-using Xunit.Abstractions;
+using Xunit;
 using Xunit.Sdk;
+using Xunit.v3;
 
 namespace Serilog.Sinks.XUnit.Injectable;
 
@@ -15,7 +14,7 @@ namespace Serilog.Sinks.XUnit.Injectable;
 public class InjectableTestOutputSink : IInjectableTestOutputSink
 {
     private readonly Stack<LogEvent> _cachedLogEvents;
-    private readonly ITextFormatter _textFormatter;
+    private readonly MessageTemplateTextFormatter _textFormatter;
     private IMessageSink? _messageSink;
     private ITestOutputHelper? _testOutputHelper;
 
@@ -46,20 +45,18 @@ public class InjectableTestOutputSink : IInjectableTestOutputSink
         if (_testOutputHelper == null)
         {
             _cachedLogEvents.Push(logEvent);
+            return;
         }
-        else
+
+        FlushCachedLogEvents();
+        Write(logEvent);
+    }
+
+    private void FlushCachedLogEvents()
+    {
+        while (_cachedLogEvents.Count > 0)
         {
-            if (_cachedLogEvents.Any())
-            {
-                while (_cachedLogEvents.Count > 0)
-                {
-                    LogEvent oldEvent = _cachedLogEvents.Pop();
-
-                    Write(oldEvent);
-                }
-            }
-
-            Write(logEvent);
+            Write(_cachedLogEvents.Pop());
         }
     }
 

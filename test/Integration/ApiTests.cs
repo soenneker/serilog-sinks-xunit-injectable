@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Integration;
 

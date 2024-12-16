@@ -30,21 +30,18 @@ public class UnitFixture : IAsyncLifetime
 
         Log.Logger = serilogLogger;
 
-        Services.AddLogging(builder =>
-        {
-            builder.AddSerilog(dispose: true);
-        });
+        Services.AddLogging(builder => { builder.AddSerilog(dispose: true); });
     }
 
-    public virtual Task InitializeAsync()
+    public virtual ValueTask InitializeAsync()
     {
         ServiceProvider = Services.BuildServiceProvider();
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public virtual async Task DisposeAsync()
+    public virtual ValueTask DisposeAsync()
     {
-        await ServiceProvider.DisposeAsync();
+        return ServiceProvider.DisposeAsync();
     }
 }

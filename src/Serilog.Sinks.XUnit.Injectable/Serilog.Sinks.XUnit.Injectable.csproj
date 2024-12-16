@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
+        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
         <Nullable>enable</Nullable>
         <NoWarn>$(NoWarn);1591</NoWarn>
         <Platforms>AnyCPU</Platforms>
@@ -9,7 +9,7 @@
 
     <PropertyGroup>
         <Description>The injectable, xUnit test output sink for Serilog</Description>
-        <Version Condition="'$(BUILD_VERSION)' == ''">3.0.0</Version>
+        <Version Condition="'$(BUILD_VERSION)' == ''">4.0.0</Version>
         <Version Condition="'$(BUILD_VERSION)' != ''">$(BUILD_VERSION)</Version>
         <AssemblyName>Serilog.Sinks.XUnit.Injectable</AssemblyName>
         <PackageId>Serilog.Sinks.XUnit.Injectable</PackageId>
@@ -36,12 +36,7 @@
         <None Include="..\..\icon.png" Pack="true" PackagePath="\" />
         <None Include="..\..\LICENSE" Pack="true" PackagePath="\" />
 
-        
-
         <PackageReference Include="Serilog" Version="4.2.0" />
-
-        <PackageReference Include="xunit.abstractions" Version="2.0.3" />
-
-        <PackageReference Include="xunit.core" Version="2.9.2" />
+        <PackageReference Include="xunit.v3" Version="1.0.0" />
     </ItemGroup>
 </Project>

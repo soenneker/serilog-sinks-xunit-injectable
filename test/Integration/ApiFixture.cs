@@ -13,7 +13,7 @@ public class ApiFixture : IAsyncLifetime
 {
     public WebApplicationFactory<Program> ApiFactory { get; set; } = default!;
 
-    public Task InitializeAsync()
+    public ValueTask InitializeAsync()
     {
         ApiFactory = new WebApplicationFactory<Program>();
         ApiFactory = ApiFactory.WithWebHostBuilder(builder =>
@@ -32,10 +32,10 @@ public class ApiFixture : IAsyncLifetime
             });
         });
 
-        return Task.CompletedTask;
+        return ValueTask.CompletedTask;
     }
 
-    public async Task DisposeAsync()
+    public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
 

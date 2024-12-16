@@ -3,7 +3,8 @@ using Serilog.Configuration;
 using Serilog.Core;
 using Serilog.Events;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
-using Xunit.Abstractions;
+using Xunit;
+using Xunit.Sdk;
 
 namespace Serilog.Sinks.XUnit.Injectable.Extensions;
 

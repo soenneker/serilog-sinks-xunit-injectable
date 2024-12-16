@@ -1,6 +1,7 @@
 ﻿using Serilog.Core;
 using Serilog.Events;
-using Xunit.Abstractions;
+using Xunit;
+using Xunit.Sdk;
 
 namespace Serilog.Sinks.XUnit.Injectable.Abstract;
 
