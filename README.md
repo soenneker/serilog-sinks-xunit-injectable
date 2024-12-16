@@ -20,6 +20,11 @@ This library addresses that issue by allowing for the `TestOutputHelper` from ea
 
 Examples are provided for both Unit and Integration tests. For brevity, the actual injection is shown in the constructor of the test class in the examples below, but you'll probably want to leverage a base class.
 
+### xUnit Compatibility
+
+- Version 3.x: Supports xUnit 2.9.
+- Latest Version: Fully supports xUnit 3.
+
 ## Installation
 
 ```
