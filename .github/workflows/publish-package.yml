@@ -23,10 +23,12 @@ jobs:
           version=$(($GITHUB_RUN_NUMBER))
           echo "BUILD_VERSION=4.0.$version" >> ${GITHUB_ENV}
 
-      - name: Setup .NET Core 8.0
+      - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9.0.x
+          dotnet-version: |
+            8.0.x
+            9.0.x
 
       - name: Install dependencies
         run: dotnet restore
