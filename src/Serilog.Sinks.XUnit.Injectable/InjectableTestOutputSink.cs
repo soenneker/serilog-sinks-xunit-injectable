@@ -75,6 +75,14 @@ public class InjectableTestOutputSink : IInjectableTestOutputSink
         string message = renderSpace.ToString().Trim();
 
         _messageSink?.OnMessage(new DiagnosticMessage(message));
-        _testOutputHelper?.WriteLine(message);
+
+        try
+        {
+            _testOutputHelper?.WriteLine(message);
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Typically no test is active
+        }
     }
 }

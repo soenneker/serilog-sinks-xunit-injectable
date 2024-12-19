@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using SampleApi.Utils;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
@@ -42,6 +43,8 @@ public class UnitFixture : IAsyncLifetime
 
     public virtual ValueTask DisposeAsync()
     {
+        GC.SuppressFinalize(this);
+
         return ServiceProvider.DisposeAsync();
     }
 }

@@ -21,7 +21,7 @@ public class ApiTests
     [Fact]
     public async Task Get_should_have_log_messages_and_be_successful()
     {
-        HttpResponseMessage response = await _client.GetAsync("/");
+        HttpResponseMessage response = await _client.GetAsync("/", TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
     }
 }
