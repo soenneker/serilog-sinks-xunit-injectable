@@ -37,7 +37,6 @@ public static class InjectableTestOutputExtension
         if (sink == null)
             throw new ArgumentNullException(nameof(sink));
 
-        LoggerConfiguration config = sinkConfiguration.Sink(sink, restrictedToMinimumLevel, levelSwitch);
-        return config;
+        return sinkConfiguration.Sink(sink, restrictedToMinimumLevel, levelSwitch);
     }
 }
