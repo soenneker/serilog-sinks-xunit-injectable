@@ -11,7 +11,7 @@ using Xunit.v3;
 namespace Serilog.Sinks.XUnit.Injectable;
 
 /// <inheritdoc cref="IInjectableTestOutputSink"/>
-public class InjectableTestOutputSink : IInjectableTestOutputSink
+public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 {
     private readonly Stack<LogEvent> _cachedLogEvents;
     private readonly MessageTemplateTextFormatter _textFormatter;
