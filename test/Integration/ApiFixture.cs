@@ -11,7 +11,7 @@ namespace Serilog.Sinks.XUnit.Injectable.Tests.Integration;
 
 public class ApiFixture : IAsyncLifetime
 {
-    public WebApplicationFactory<Program> ApiFactory { get; set; } = default!;
+    public WebApplicationFactory<Program> ApiFactory { get; set; } = null!;
 
     public ValueTask InitializeAsync()
     {

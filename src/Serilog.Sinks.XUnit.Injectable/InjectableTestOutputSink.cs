@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
+using System.Collections.Concurrent;
+using System.Text;
+using System.Threading;
 using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
@@ -10,79 +11,87 @@ using Xunit.v3;
 
 namespace Serilog.Sinks.XUnit.Injectable;
 
-/// <inheritdoc cref="IInjectableTestOutputSink"/>
+///<inheritdoc cref="IInjectableTestOutputSink"/>
 public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 {
-    private readonly Stack<LogEvent> _cachedLogEvents;
-    private readonly MessageTemplateTextFormatter _textFormatter;
-    private IMessageSink? _messageSink;
-    private ITestOutputHelper? _testOutputHelper;
+    private readonly Lock _lock = new(); // guards flush+write
+    private readonly ConcurrentQueue<LogEvent> _cache = new();
+    private readonly MessageTemplateTextFormatter _fmt;
 
-    private const string _defaultConsoleOutputTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}";
+    private volatile ITestOutputHelper? _helper; // set once, then read
+    private volatile IMessageSink? _sink;
 
-    /// <summary>
-    ///     Use this ctor for injecting into the DI container
-    /// </summary>
-    /// <param name="outputTemplate">A message template describing the format used to write to the sink.
-    /// the default is <code>"[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}"</code>.</param>
-    /// <param name="formatProvider">Supplies culture-specific formatting information, or null.</param>
-    /// <returns>Configuration object allowing method chaining.</returns>
-    public InjectableTestOutputSink(string outputTemplate = _defaultConsoleOutputTemplate, IFormatProvider? formatProvider = null)
+    private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
+
+    [ThreadStatic] private static StringBuilder? _sb;
+
+    [ThreadStatic] private static ReusableStringWriter? _sw;
+
+    public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
-        _cachedLogEvents = new Stack<LogEvent>();
-
-        _textFormatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
+        _fmt = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
     }
 
-    public void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null)
+    public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
-        _testOutputHelper = testOutputHelper;
-        _messageSink = messageSink;
+        ArgumentNullException.ThrowIfNull(helper);
+
+        // one short, guaranteed exit scope
+        using Lock.Scope _ = _lock.EnterScope();
+
+        _helper = helper;
+        _sink = sink;
+        FlushLocked();
     }
 
     public void Emit(LogEvent logEvent)
     {
-        if (_testOutputHelper == null)
+        ArgumentNullException.ThrowIfNull(logEvent);
+
+        // FAST-PATH: helper not yet available – enqueue without locking
+        ITestOutputHelper? helperSnapshot = _helper; // direct volatile read
+
+        if (helperSnapshot is null)
         {
-            _cachedLogEvents.Push(logEvent);
+            _cache.Enqueue(logEvent);
             return;
         }
 
-        FlushCachedLogEvents();
-        Write(logEvent);
+
+        using Lock.Scope _ = _lock.EnterScope();
+
+        // Flush anything another thread buffered before we obtained the scope
+        FlushLocked();
+        WriteLocked(logEvent);
     }
 
-    private void FlushCachedLogEvents()
+    private void FlushLocked()
     {
-        while (_cachedLogEvents.Count > 0)
-        {
-            Write(_cachedLogEvents.Pop());
-        }
+        while (_cache.TryDequeue(out LogEvent? queued))
+            WriteLocked(queued);
     }
 
-    /// <summary>
-    ///     Emits the provided log event from a sink
-    /// </summary>
-    /// <param name="logEvent">The event being logged</param>
-    private void Write(LogEvent logEvent)
+    private void WriteLocked(LogEvent evt)
     {
-        if (logEvent == null)
-            throw new ArgumentNullException(nameof(logEvent));
+        // rent / reset thread-local buffers
+        StringBuilder sb = _sb ??= new StringBuilder(256);
+        sb.Clear();
 
-        var renderSpace = new StringWriter();
-        _textFormatter.Format(logEvent, renderSpace);
+        ReusableStringWriter sw = _sw ??= new ReusableStringWriter(sb);
+        sw.Reset();
 
-        string message = renderSpace.ToString().Trim();
+        _fmt.Format(evt, sw);
+        var message = sb.ToString(); // single unavoidable alloc
 
-        _messageSink?.OnMessage(new DiagnosticMessage(message));
+        _sink?.OnMessage(new DiagnosticMessage(message));
 
         try
         {
-            _testOutputHelper?.WriteLine(message);
+            _helper?.WriteLine(message);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
-            // Typically no test is active
+            /* test already finished – swallow */
         }
     }
 }

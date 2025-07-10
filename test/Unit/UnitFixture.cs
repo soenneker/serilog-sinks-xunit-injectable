@@ -10,7 +10,7 @@ namespace Serilog.Sinks.XUnit.Injectable.Tests.Unit;
 
 public class UnitFixture : IAsyncLifetime
 {
-    public ServiceProvider ServiceProvider { get; set; } = default!;
+    public ServiceProvider ServiceProvider { get; set; } = null!;
 
     protected IServiceCollection Services { get; set; }
 

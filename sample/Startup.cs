@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using SampleApi.Utils;
 
 namespace SampleApi;
@@ -21,7 +20,7 @@ public class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, ILogger<Startup> logger)
+    public void Configure(IApplicationBuilder app)
     {
         app.UseRouting();
 

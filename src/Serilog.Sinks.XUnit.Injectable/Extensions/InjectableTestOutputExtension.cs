@@ -31,11 +31,9 @@ public static class InjectableTestOutputExtension
     public static LoggerConfiguration InjectableTestOutput(this LoggerSinkConfiguration sinkConfiguration, IInjectableTestOutputSink sink,
         LogEventLevel restrictedToMinimumLevel = LevelAlias.Minimum, LoggingLevelSwitch? levelSwitch = null)
     {
-        if (sinkConfiguration == null)
-            throw new ArgumentNullException(nameof(sinkConfiguration));
+        ArgumentNullException.ThrowIfNull(sinkConfiguration, nameof(sinkConfiguration));
 
-        if (sink == null)
-            throw new ArgumentNullException(nameof(sink));
+        ArgumentNullException.ThrowIfNull(sink, nameof(sink));
 
         return sinkConfiguration.Sink(sink, restrictedToMinimumLevel, levelSwitch);
     }
