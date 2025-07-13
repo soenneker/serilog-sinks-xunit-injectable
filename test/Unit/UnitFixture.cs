@@ -1,9 +1,9 @@
-﻿using System;
-using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using SampleApi.Utils;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Serilog.Sinks.XUnit.Injectable.Extensions;
+using System;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Unit;
@@ -14,18 +14,20 @@ public class UnitFixture : IAsyncLifetime
 
     protected IServiceCollection Services { get; set; }
 
+    private readonly InjectableTestOutputSink _sink;
+
     public UnitFixture()
     {
         Services = new ServiceCollection();
 
-        var injectableTestOutputSink = new InjectableTestOutputSink();
+        _sink = new InjectableTestOutputSink();
 
-        Services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink);
+        Services.AddSingleton<IInjectableTestOutputSink>(_sink);
         Services.AddSingleton<SampleUtil>();
 
         ILogger serilogLogger = new LoggerConfiguration()
             .MinimumLevel.Verbose()
-            .WriteTo.InjectableTestOutput(injectableTestOutputSink)
+            .WriteTo.InjectableTestOutput(_sink)
             .Enrich.FromLogContext()
             .CreateLogger();
 
@@ -41,10 +43,12 @@ public class UnitFixture : IAsyncLifetime
         return ValueTask.CompletedTask;
     }
 
-    public virtual ValueTask DisposeAsync()
+    public virtual async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
 
-        return ServiceProvider.DisposeAsync();
+        await _sink.DisposeAsync().ConfigureAwait(false);
+
+        await ServiceProvider.DisposeAsync().ConfigureAwait(false);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
@@ -8,7 +9,7 @@ using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 
-namespace Serilog.Sinks.XUnit.Injectable.Tests.Benchmarks;
+namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 
 ///<inheritdoc cref="IInjectableTestOutputSink"/>
 public sealed class ConcurrentInjectableTestOutputSink : IInjectableTestOutputSink
@@ -87,5 +88,10 @@ public sealed class ConcurrentInjectableTestOutputSink : IInjectableTestOutputSi
         {
             /* test already finished – swallow */
         }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
     }
 }

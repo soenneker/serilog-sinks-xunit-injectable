@@ -1,5 +1,6 @@
 ﻿using Serilog.Core;
 using Serilog.Events;
+using System;
 using Xunit;
 using Xunit.Sdk;
 
@@ -9,7 +10,7 @@ namespace Serilog.Sinks.XUnit.Injectable.Abstract;
 /// A sink to direct Serilog output to the XUnit test output via dependency injection <para/>
 /// Use as a Singleton
 /// </summary>
-public interface IInjectableTestOutputSink : ILogEventSink
+public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable
 {
     /// <summary>
     ///     Call this as soon as you have a new instance of the testOutputHelper (usually at the beginning of a xUnit test

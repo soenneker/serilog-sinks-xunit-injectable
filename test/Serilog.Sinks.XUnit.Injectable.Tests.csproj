@@ -10,12 +10,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="NewFolder\**" />
-      <EmbeddedResource Remove="NewFolder\**" />
-      <None Remove="NewFolder\**" />
-    </ItemGroup>
-
-    <ItemGroup>
+        <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.7" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
         <PackageReference Include="Soenneker.Tests.Benchmark" Version="3.0.38" />

@@ -1,18 +1,17 @@
-﻿using Serilog.Events;
-using Serilog.Formatting.Display;
-using Serilog.Sinks.XUnit.Injectable.Abstract;
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using Serilog.Events;
+using Serilog.Formatting.Display;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 
-namespace Serilog.Sinks.XUnit.Injectable;
+namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 
-/// <inheritdoc cref="IInjectableTestOutputSink"/>
-public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
+public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTestOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
 
@@ -25,7 +24,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     [ThreadStatic] private static ReusableStringWriter? _threadWriter;
 
-    public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
+    public BlockingCollectionInjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
         _formatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
         _queue = new BlockingCollection<LogEvent>();
@@ -108,7 +107,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         }
 
         if (_threadWriter != null)
-            await _threadWriter.DisposeAsync().ConfigureAwait(false);
+            await _threadWriter.DisposeAsync();
 
         _queue.Dispose();
     }
