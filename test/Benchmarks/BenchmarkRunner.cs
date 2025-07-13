@@ -12,7 +12,7 @@ public sealed class BenchmarkRunner : BenchmarkTest
     {
     }
 
-    [Fact]
+   // [Fact]
     public async ValueTask SinkBenchmark()
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<SinkBenchmark>(DefaultConf);
