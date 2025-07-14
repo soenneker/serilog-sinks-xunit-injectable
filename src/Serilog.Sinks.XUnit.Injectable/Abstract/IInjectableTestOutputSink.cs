@@ -1,6 +1,7 @@
 ﻿using Serilog.Core;
 using Serilog.Events;
 using System;
+using System.Threading.Tasks;
 using Xunit;
 using Xunit.Sdk;
 
@@ -27,4 +28,10 @@ public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable
     /// </summary>
     /// <param name="logEvent">The event being logged</param>
     new void Emit(LogEvent logEvent);
+
+    /// <summary>
+    /// This is idempotent... but you should avoid calling it explicitly because it'll get disposed from Serilog if it's been registered.  
+    /// </summary>
+    /// <returns></returns>
+    new ValueTask DisposeAsync();
 }

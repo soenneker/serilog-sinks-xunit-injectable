@@ -47,8 +47,6 @@ public class UnitFixture : IAsyncLifetime
     {
         GC.SuppressFinalize(this);
 
-        await _sink.DisposeAsync().ConfigureAwait(false);
-
         await ServiceProvider.DisposeAsync().ConfigureAwait(false);
     }
 }

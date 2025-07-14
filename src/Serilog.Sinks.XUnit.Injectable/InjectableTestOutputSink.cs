@@ -23,6 +23,8 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     private ITestOutputHelper? _helper;
     private IMessageSink? _sink;
 
+    private int _disposed;
+
     [ThreadStatic] private static ReusableStringWriter? _threadWriter;
 
     public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
@@ -96,6 +98,9 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
         _queue.CompleteAdding();
 
         try
@@ -106,9 +111,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         {
             // ignored
         }
-
-        if (_threadWriter != null)
-            await _threadWriter.DisposeAsync().ConfigureAwait(false);
 
         _queue.Dispose();
     }
