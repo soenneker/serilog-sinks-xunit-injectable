@@ -5,7 +5,6 @@ using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Serilog.Sinks.XUnit.Injectable.Extensions;
 using System;
 using System.Threading.Tasks;
-using Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Integration;

@@ -2,7 +2,6 @@
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using System.Threading.Tasks;
 using AwesomeAssertions;
-using Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 using Serilog.Sinks.XUnit.Injectable.Tests.Utils;
 using Xunit;
 
