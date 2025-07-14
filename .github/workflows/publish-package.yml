@@ -35,11 +35,23 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Test
-        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity Detailed --logger "trx;LogFileName=results.trx"
+      - name: Run tests, dump results, then fail
+        run: |
+            # initialize a variable
+            test_exit=0
 
-      - name: Show detailed test results
-        run: cat test/TestResults/results.trx
+            # run tests, emit a TRX, but don’t exit the shell on failure
+            dotnet test \
+                test/Serilog.Sinks.XUnit.Injectable.Tests.csproj \
+                --no-restore \
+                --logger "trx;LogFileName=results.trx" \
+                || test_exit=$?
+
+            # now print the full results file so you see each failed test
+            cat test/TestResults/results.trx || true
+
+            # finally exit with the original test exit code
+            exit $test_exit
 
       - name: Pack
         run: dotnet pack --no-build --configuration Release --output .
