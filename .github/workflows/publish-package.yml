@@ -1,4 +1,4 @@
-name: publish-package
+﻿name: publish-package
 on:
   push:
     branches:
@@ -40,15 +40,15 @@ jobs:
             # initialize a variable
             test_exit=0
 
-            # run tests, emit a TRX, but don�t exit the shell on failure
+            # run tests, emit a TRX, but don’t exit the shell on failure
             dotnet test \
                 test/Serilog.Sinks.XUnit.Injectable.Tests.csproj \
                 --no-restore \
                 --logger "trx;LogFileName=results.trx" \
                 || test_exit=$?
 
-            # now print the full results file so you see each failed test
-            cat test/TestResults/results.trx || true
+            echo "📂 TestResults files:"
+            find test -type f -path "*TestResults/results.trx" -print -exec cat {} \; || true
 
             # finally exit with the original test exit code
             exit $test_exit
