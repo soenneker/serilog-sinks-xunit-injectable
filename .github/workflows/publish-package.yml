@@ -28,33 +28,18 @@ jobs:
       - run: dotnet build --configuration Release --no-restore
         name: Build
 
-      # -------------------------- TESTS --------------------------------------
       - name: Test
         id: test
-        continue-on-error: true
         run: |
-          dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --logger "trx" --results-directory TestResults --verbosity Detailed
+          dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --verbosity Normal
 
-
-      # Upload the log even on failure
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/TestResults/*.log'
-
-      # ---------------------- ONLY RUN IF TESTS PASSED -----------------------
       - name: Pack
-        if: ${{ steps.test.outputs.status == '0' }}
         run: dotnet pack --no-build --configuration Release --output .
 
       - name: Publish to nuGet
-        if: ${{ steps.test.outputs.status == '0' }}
         run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET__TOKEN }} --skip-duplicate
 
       - name: Add GitHub NuGet Source
-        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           dotnet nuget add source https://nuget.pkg.github.com/soenneker/index.json \
             --name "github" \
@@ -63,14 +48,12 @@ jobs:
             --store-password-in-clear-text
 
       - name: Publish to GitHub Packages
-        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           dotnet nuget push ./*.nupkg \
             --source "github" \
             --api-key "${{ secrets.GH__TOKEN }}"
 
       - name: Create GitHub Release
-        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           changelog=$(git log -20 --pretty=format:"- %s")
           tag_name="v${BUILD_VERSION}"
@@ -81,8 +64,3 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/releases \
             -d @payload.json
-
-      # ---------------- make the whole job fail if tests failed --------------
-      - name: Fail job if tests failed
-        if: ${{ steps.test.outputs.status != '0' }}
-        run: exit 1
