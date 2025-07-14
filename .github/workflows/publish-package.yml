@@ -36,13 +36,13 @@ jobs:
           dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --logger "trx" --results-directory TestResults --verbosity Detailed
 
 
-      # Upload the TRX even on failure
-      - name: Upload test results (TRX)
+      # Upload the log even on failure
+      - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-trx
-          path: 'TestResults/*.trx'
+          name: test-results
+          path: '**/TestResults/*.log'
 
       # ---------------------- ONLY RUN IF TESTS PASSED -----------------------
       - name: Pack
