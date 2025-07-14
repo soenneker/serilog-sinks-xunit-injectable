@@ -34,7 +34,7 @@ public class SampleUtilTests
     [Fact]
     public void DoWork_loop_result_with_log_messages()
     {
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             _util.DoWork();
         }
@@ -43,7 +43,7 @@ public class SampleUtilTests
     [Fact]
     public void DoWork_loop_with_inject_with_log_messages()
     {
-        for (int i = 0; i < 10; i++)
+        for (var i = 0; i < 10; i++)
         {
             var outputSink = (IInjectableTestOutputSink) _fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
             outputSink.Inject(_testOutputHelper);

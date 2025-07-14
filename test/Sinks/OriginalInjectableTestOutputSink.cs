@@ -81,7 +81,7 @@ public sealed class OriginalInjectableTestOutputSink : IInjectableTestOutputSink
         {
             _testOutputHelper?.WriteLine(message);
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException)
         {
             // Typically no test is active
         }

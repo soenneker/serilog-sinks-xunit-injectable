@@ -1,99 +1,92 @@
 ﻿name: publish-package
 on:
   push:
-    branches:
-      - main
+    branches: [main]
     paths-ignore:
       - 'test/**'
 
-    # Publish `v1.2.3` tags as releases.
-
-
 env:
-    "PipelineEnvironment": true
+  PipelineEnvironment: true
 
 jobs:
   publish-package:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Setting up build version
         run: |
-          version=$(($GITHUB_RUN_NUMBER))
-          echo "BUILD_VERSION=4.0.$version" >> ${GITHUB_ENV}
+          echo "BUILD_VERSION=4.0.${GITHUB_RUN_NUMBER}" >> "${GITHUB_ENV}"
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
 
-      - name: Install dependencies
-        run: dotnet restore
+      - run: dotnet restore
+        name: Install dependencies
 
-      - name: Build
-        run: dotnet build --configuration Release --no-restore
+      - run: dotnet build --configuration Release --no-restore
+        name: Build
 
-      - name: Run tests, dump results, then fail
+      # -------------------------- TESTS --------------------------------------
+      - name: Test
+        id: test
+        continue-on-error: true
         run: |
-            # initialize a variable
-            test_exit=0
+          dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj \
+            --configuration Release \
+            --no-restore \
+            --logger "GitHubActions" \
+            --logger "trx;LogFileName=results.trx"
+          echo "status=$?" >> "$GITHUB_OUTPUT"
 
-            # run tests, emit a TRX, but don’t exit the shell on failure
-            dotnet test \
-                test/Serilog.Sinks.XUnit.Injectable.Tests.csproj \
-                --no-restore \
-                --logger "trx;LogFileName=results.trx" \
-                || test_exit=$?
+      # Upload the TRX even on failure
+      - name: Upload test results (TRX)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-trx
+          path: '**/TestResults/*.trx'
 
-            echo "📂 TestResults files:"
-            find test -type f -path "*TestResults/results.trx" -print -exec cat {} \; || true
-
-            # finally exit with the original test exit code
-            exit $test_exit
-
+      # ---------------------- ONLY RUN IF TESTS PASSED -----------------------
       - name: Pack
+        if: ${{ steps.test.outputs.status == '0' }}
         run: dotnet pack --no-build --configuration Release --output .
 
       - name: Publish to nuGet
-        run: dotnet nuget push **\*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{secrets.NUGET__TOKEN}} --skip-duplicate
+        if: ${{ steps.test.outputs.status == '0' }}
+        run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET__TOKEN }} --skip-duplicate
 
       - name: Add GitHub NuGet Source
+        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           dotnet nuget add source https://nuget.pkg.github.com/soenneker/index.json \
-          --name "github" \
-          --username "any" \
-          --password ${{ secrets.GH__TOKEN }} \
-          --store-password-in-clear-text
+            --name "github" \
+            --username "any" \
+            --password "${{ secrets.GH__TOKEN }}" \
+            --store-password-in-clear-text
 
       - name: Publish to GitHub Packages
+        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           dotnet nuget push ./*.nupkg \
-          --source "github" \
-          --api-key ${{ secrets.GH__TOKEN }}
+            --source "github" \
+            --api-key "${{ secrets.GH__TOKEN }}"
 
       - name: Create GitHub Release
+        if: ${{ steps.test.outputs.status == '0' }}
         run: |
           changelog=$(git log -20 --pretty=format:"- %s")
-          tag_name="v$BUILD_VERSION"
-
-          json_payload=$(
-            jq -n \
-              --arg tag_name "$tag_name" \
-              --arg name "$tag_name" \
-              --arg body "$changelog" \
-              '{
-                tag_name: $tag_name,
-                name: $name,
-                body: $body,
-                draft: false,
-                prerelease: false
-              }'
-          )
-
+          tag_name="v${BUILD_VERSION}"
+          jq -n --arg tag_name "$tag_name" --arg name "$tag_name" --arg body "$changelog" \
+            '{tag_name:$tag_name,name:$name,body:$body,draft:false,prerelease:false}' > payload.json
           curl -s -X POST \
             -H "Authorization: Bearer ${{ secrets.GH__TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/releases \
-            -d "$json_payload"
+            -d @payload.json
+
+      # ---------------- make the whole job fail if tests failed --------------
+      - name: Fail job if tests failed
+        if: ${{ steps.test.outputs.status != '0' }}
+        run: exit 1
