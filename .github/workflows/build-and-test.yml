@@ -27,10 +27,9 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Test
-        run: dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --no-restore --verbosity Normal --logger "trx;LogFileName=results.trx"
-
-      - name: Show detailed test results
-        run: cat test/TestResults/results.trx
+        id: test
+        run: |
+          dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --verbosity Normal
 
       - name: Pack
         run: dotnet pack --no-build --configuration Release --output .
