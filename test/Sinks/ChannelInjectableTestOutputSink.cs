@@ -3,6 +3,7 @@ using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -11,10 +12,10 @@ using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 
-namespace Serilog.Sinks.XUnit.Injectable;
+namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 
 /// <inheritdoc cref="IInjectableTestOutputSink"/>
-public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
+public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
 
@@ -35,7 +36,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     private int _disposed;
 
-    public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
+    public ChannelInjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
         _fmt = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
 

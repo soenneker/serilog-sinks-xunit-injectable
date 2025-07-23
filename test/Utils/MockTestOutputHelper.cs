@@ -43,12 +43,7 @@ internal sealed class MockTestOutputHelper : ITestOutputHelper
         var parser = new MessageTemplateParser();
         MessageTemplate template = parser.Parse(message);
 
-        var evt = new LogEvent(
-            DateTimeOffset.Now,
-            LogEventLevel.Information,
-            null,
-            template,
-            new List<LogEventProperty>());
+        var evt = new LogEvent(DateTimeOffset.Now, LogEventLevel.Information, null, template, new List<LogEventProperty>());
 
         formatter.Format(evt, sw);
 

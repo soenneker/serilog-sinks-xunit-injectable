@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;

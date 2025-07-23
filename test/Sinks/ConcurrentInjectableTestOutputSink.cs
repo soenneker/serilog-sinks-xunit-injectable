@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;

@@ -5,12 +5,14 @@ using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 
+/// <inheritdoc cref="IInjectableTestOutputSink"/>
 public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTestOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
@@ -21,6 +23,8 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
 
     private ITestOutputHelper? _helper;
     private IMessageSink? _sink;
+
+    private int _disposed;
 
     [ThreadStatic] private static ReusableStringWriter? _threadWriter;
 
@@ -95,6 +99,9 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
 
     public async ValueTask DisposeAsync()
     {
+        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+            return;
+
         _queue.CompleteAdding();
 
         try
@@ -105,9 +112,6 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
         {
             // ignored
         }
-
-        if (_threadWriter != null)
-            await _threadWriter.DisposeAsync();
 
         _queue.Dispose();
     }

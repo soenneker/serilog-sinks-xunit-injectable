@@ -23,73 +23,49 @@ public class SinkBenchmark
     // BenchmarkDotNet will spin up a fresh *instance of this class* per thread,
     // so the fields below are already thread-local; no further protection needed.
     private LogEvent _evt = null!;
-    private QueueInjectableTestOutputSink _queueSink = null!;
-    private ConcurrentInjectableTestOutputSink _conSink = null!;
-    private BlockingCollectionInjectableTestOutputSink _blockingCollection = null!;
-    private OriginalInjectableTestOutputSink _originalSink = null!;
+
+    private IInjectableTestOutputSink _orig = null!;
+    private IInjectableTestOutputSink _queue = null!;
+    private IInjectableTestOutputSink _cc = null!;
+    private IInjectableTestOutputSink _block = null!;
+    private IInjectableTestOutputSink _chan = null!;
 
     private readonly MockTestOutputHelper _helper = new();
 
-    [GlobalSetup(Target = nameof(Original))]
-    public void SetupOriginal()
-    {
-        BuildSinks(queue: false);
-    }
-
-    [GlobalSetup(Target = nameof(Queue))]
-    public void SetupQueue()
-    {
-        BuildSinks(queue: true);
-    }
-
-    [GlobalSetup(Target = nameof(ConcurrentQueue))]
-    public void SetupConcurrent()
-    {
-        BuildSinks(queue: false);
-    }
-
-    [GlobalSetup(Target = nameof(BlockingCollection))]
-    public void SetupBlockingCollection()
-    {
-        BuildSinks(queue: false);
-    }
-
-    private void BuildSinks(bool queue)
+    [GlobalSetup]
+    public void Setup()
     {
         MessageTemplate template = new MessageTemplateParser().Parse("Benchmark {Value}");
         _evt = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, exception: null, messageTemplate: template, properties: []);
 
-        _originalSink = new OriginalInjectableTestOutputSink();
-        _queueSink = new QueueInjectableTestOutputSink();
-        _conSink = new ConcurrentInjectableTestOutputSink();
-        _conSink = new ConcurrentInjectableTestOutputSink();
-        _blockingCollection = new BlockingCollectionInjectableTestOutputSink();
+        _orig = new OriginalInjectableTestOutputSink();
+        _queue = new QueueInjectableTestOutputSink();
+        _cc = new ConcurrentInjectableTestOutputSink();
+        _block = new BlockingCollectionInjectableTestOutputSink();
+        _chan = new ChannelInjectableTestOutputSink();
 
-        IInjectableTestOutputSink sink = queue ? _queueSink : _conSink;
-        sink.Inject(_helper);
+        foreach (IInjectableTestOutputSink s in new[] {_orig, _queue, _cc, _block, _chan})
+            s.Inject(_helper);
     }
 
-    [Benchmark(Baseline = true)]
-    public void Original()
+    private void Produce(IInjectableTestOutputSink sink) =>
+        Parallel.For(0, EventsTotal, new ParallelOptions {MaxDegreeOfParallelism = Degree}, _ => sink.Emit(_evt));
+
+    private async Task RunAsync(IInjectableTestOutputSink sink)
     {
-        Parallel.For(0, EventsTotal, new ParallelOptions { MaxDegreeOfParallelism = Degree }, _ => _originalSink.Emit(_evt));
+        Produce(sink);
+        await sink.DisposeAsync();
     }
 
     [Benchmark]
-    public void Queue()
-    {
-        Parallel.For(0, EventsTotal, new ParallelOptions {MaxDegreeOfParallelism = Degree}, _ => _queueSink.Emit(_evt));
-    }
+    public async Task Queue() => await RunAsync(_queue);
 
     [Benchmark]
-    public void ConcurrentQueue()
-    {
-        Parallel.For(0, EventsTotal, new ParallelOptions {MaxDegreeOfParallelism = Degree}, _ => _conSink.Emit(_evt));
-    }
+    public async Task ConcurrentQueue() => await RunAsync(_cc);
 
     [Benchmark]
-    public void BlockingCollection()
-    {
-        Parallel.For(0, EventsTotal, new ParallelOptions { MaxDegreeOfParallelism = Degree }, _ => _blockingCollection.Emit(_evt));
-    }
+    public async Task BlockingCollection() => await RunAsync(_block);
+
+    [Benchmark]
+    public async Task Channel() => await RunAsync(_chan);
 }
