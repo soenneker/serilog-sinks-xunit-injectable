@@ -105,19 +105,20 @@ public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
             return;
 
-        await _cts.CancelAsync().ConfigureAwait(false);
-
+        // 1) Tell the reader no more items are coming
         _ch.Writer.TryComplete();
 
         try
         {
+            // 2) Let the reader finish formatting & flushing
             await _readerTask.ConfigureAwait(false);
         }
-        catch
+        finally
         {
-            /* swallow to keep test teardown clean */
+            // 3) Now it’s safe to cancel / dispose
+            await _cts.CancelAsync().ConfigureAwait(false);     // optional – keeps teardown symmetric
+            _cts.Dispose();
+            await _sw.DisposeAsync().ConfigureAwait(false);
         }
-
-        await _sw.DisposeAsync().ConfigureAwait(false);
     }
 }
