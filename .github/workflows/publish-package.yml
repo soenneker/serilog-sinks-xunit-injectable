@@ -29,38 +29,78 @@ jobs:
         name: Build
 
       - name: Test
-        id: test
+        id: tests
+        continue-on-error: true        # let the job continue so we can publish the report
         run: |
-          dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj --verbosity Normal
+            dotnet test test/Serilog.Sinks.XUnit.Injectable.Tests.csproj \
+              --configuration Release \
+              --verbosity normal \
+              --report-ctrf \
+              --report-ctrf-filename test-results.ctrf.json
+            echo "exitcode=$?" >> "$GITHUB_OUTPUT"
 
+    # ──────────────────────────────
+    # 2. Upload the raw report file (keeps history)
+    # ──────────────────────────────
+      - name: Upload CTRF artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ctrf-report
+          path: test-results.ctrf.json
+
+    # ──────────────────────────────
+    # 3. Render the report in the job summary / PR
+    # ──────────────────────────────
+      - name: Publish Test Report
+        if: always()
+        uses: ctrf-io/github-test-reporter@v1
+        with:
+          report-path: test-results.ctrf.json   # glob or file path is fine
+          summary-report: true                  # job summary (default if no reports chosen)
+          github-report: true                   # annotate PRs / Checks
+                                              # add other reports as you like
+    # ──────────────────────────────
+    # 4. Fail the job *after* publishing if tests failed
+    # ──────────────────────────────
+      - name: Fail if tests failed
+        if: steps.tests.outputs.exitcode != '0'
+        run: exit 1
+
+    # ──────────────────────────────
+    # 5. Package & publish (runs only when tests passed)
+    # ──────────────────────────────
       - name: Pack
+        if: success()
         run: dotnet pack --no-build --configuration Release --output .
 
-      - name: Publish to nuGet
-        run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET__TOKEN }} --skip-duplicate
+      - name: Publish to NuGet
+        if: success()
+        run: dotnet nuget push "**/*.nupkg" --source "https://api.nuget.org/v3/index.json" \
+           --api-key "${{ secrets.NUGET__TOKEN }}" --skip-duplicate
 
       - name: Add GitHub NuGet Source
+        if: success()
         run: |
-          dotnet nuget add source https://nuget.pkg.github.com/soenneker/index.json \
-            --name "github" \
-            --username "any" \
-            --password "${{ secrets.GH__TOKEN }}" \
-            --store-password-in-clear-text
+            dotnet nuget add source https://nuget.pkg.github.com/soenneker/index.json \
+              --name "github" \
+              --username "any" \
+              --password "${{ secrets.GH__TOKEN }}" \
+              --store-password-in-clear-text
 
       - name: Publish to GitHub Packages
-        run: |
-          dotnet nuget push ./*.nupkg \
-            --source "github" \
-            --api-key "${{ secrets.GH__TOKEN }}"
+        if: success()
+        run: dotnet nuget push "**/*.nupkg" --source "github" --api-key "${{ secrets.GH__TOKEN }}"
 
       - name: Create GitHub Release
+        if: success()
         run: |
-          changelog=$(git log -20 --pretty=format:"- %s")
-          tag_name="v${BUILD_VERSION}"
-          jq -n --arg tag_name "$tag_name" --arg name "$tag_name" --arg body "$changelog" \
-            '{tag_name:$tag_name,name:$name,body:$body,draft:false,prerelease:false}' > payload.json
-          curl -s -X POST \
-            -H "Authorization: Bearer ${{ secrets.GH__TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/releases \
-            -d @payload.json
+            changelog=$(git log -20 --pretty=format:"- %s")
+            tag_name="v${BUILD_VERSION}"
+            jq -n --arg tag_name "$tag_name" --arg name "$tag_name" --arg body "$changelog" \
+              '{tag_name:$tag_name,name:$name,body:$body,draft:false,prerelease:false}' > payload.json
+            curl -s -X POST \
+              -H "Authorization: Bearer ${{ secrets.GH__TOKEN }}" \
+              -H "Accept: application/vnd.github+json" \
+              https://api.github.com/repos/${{ github.repository }}/releases \
+              -d @payload.json
