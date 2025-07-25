@@ -19,10 +19,11 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
 
     private readonly MessageTemplateTextFormatter _fmt;
-    private readonly Channel<LogEvent> _ch = Channel.CreateUnbounded<LogEvent>(
-        new UnboundedChannelOptions { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
+
+    private readonly Channel<LogEvent> _ch = Channel.CreateUnbounded<LogEvent>(new UnboundedChannelOptions
+        {SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false});
+
     private readonly Task _readerTask;
-    private readonly CancellationTokenSource _cts = new();
 
     private readonly ReusableStringWriter _sw = new();
 
@@ -58,7 +59,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     private async Task ReadLoop()
     {
-        await foreach (LogEvent evt in _ch.Reader.ReadAllAsync(_cts.Token).ConfigureAwait(false))
+        await foreach (LogEvent evt in _ch.Reader.ReadAllAsync().ConfigureAwait(false))
         {
             ITestOutputHelper? helper = _helper; // volatile read
 
@@ -107,17 +108,9 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         // 1) Tell the reader no more items are coming
         _ch.Writer.TryComplete();
 
-        try
-        {
-            // 2) Let the reader finish formatting & flushing
-            await _readerTask.ConfigureAwait(false);
-        }
-        finally
-        {
-            // 3) Now it’s safe to cancel / dispose
-            await _cts.CancelAsync().ConfigureAwait(false);     // optional – keeps teardown symmetric
-            _cts.Dispose();
-            await _sw.DisposeAsync().ConfigureAwait(false);
-        }
+        // 2) Let the reader finish formatting & flushing
+        await _readerTask.ConfigureAwait(false);
+
+        await _sw.DisposeAsync().ConfigureAwait(false);
     }
 }
