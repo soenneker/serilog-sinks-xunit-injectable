@@ -18,7 +18,7 @@ jobs:
         run: |
           echo "BUILD_VERSION=4.0.${GITHUB_RUN_NUMBER}" >> "${GITHUB_ENV}"
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 9.0.x
 
