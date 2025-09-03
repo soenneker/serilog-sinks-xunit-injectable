@@ -42,7 +42,7 @@
 
     <ItemGroup>
         <PackageReference Include="Serilog" Version="4.3.0" />
-        <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="3.0.4" />
+        <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="3.0.5" />
         <PackageReference Include="xunit.v3.extensibility.core" Version="3.0.1" />
     </ItemGroup>
 </Project>
