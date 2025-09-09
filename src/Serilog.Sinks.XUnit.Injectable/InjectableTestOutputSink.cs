@@ -3,9 +3,11 @@ using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Soenneker.Extensions.Task;
+using Soenneker.Extensions.ValueTask;
+using Soenneker.Utils.AtomicBool;
 using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
@@ -14,14 +16,14 @@ using Xunit.v3;
 namespace Serilog.Sinks.XUnit.Injectable;
 
 /// <inheritdoc cref="IInjectableTestOutputSink"/>
-public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
+public sealed class InjectableTestOutputSink : IInjectableTestOutputSink, IAsyncDisposable, IDisposable
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
 
     private readonly MessageTemplateTextFormatter _fmt;
 
     private readonly Channel<LogEvent> _ch = Channel.CreateUnbounded<LogEvent>(new UnboundedChannelOptions
-        {SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false});
+        { SingleReader = true, SingleWriter = false, AllowSynchronousContinuations = false });
 
     private readonly Task _readerTask;
 
@@ -34,32 +36,31 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     // Only the reader touches this; safe without locks.
     private readonly Queue<LogEvent> _pending = new();
 
-    private int _disposed;
+    private readonly AtomicBool _disposed = new();
 
     public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
         _fmt = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
-
         _readerTask = Task.Run(ReadLoop);
     }
 
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
-
         _helper = helper;
         _sink = sink;
     }
 
     public void Emit(LogEvent logEvent)
     {
-        if (Volatile.Read(ref _disposed) == 0)
+        if (_disposed.IsFalse)
             _ch.Writer.TryWrite(logEvent);
     }
 
     private async Task ReadLoop()
     {
-        await foreach (LogEvent evt in _ch.Reader.ReadAllAsync().ConfigureAwait(false))
+        await foreach (LogEvent evt in _ch.Reader.ReadAllAsync()
+                           .ConfigureAwait(false))
         {
             ITestOutputHelper? helper = _helper; // volatile read
 
@@ -69,7 +70,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
                 continue;
             }
 
-            // first, flush any backlog that accumulated pre‑inject
+            // first, flush any backlog that accumulated pre-inject
             while (_pending.Count > 0)
             {
                 Write(_pending.Dequeue(), helper);
@@ -95,22 +96,42 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         {
             // Helper became invalid (test finished) – cache the event
             _helper = null;
-
             _pending.Enqueue(evt);
         }
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (Interlocked.Exchange(ref _disposed, 1) != 0)
+        if (!_disposed.TrySetTrue())
             return;
 
         // 1) Tell the reader no more items are coming
         _ch.Writer.TryComplete();
 
         // 2) Let the reader finish formatting & flushing
-        await _readerTask.ConfigureAwait(false);
+        await _readerTask.NoSync();
 
-        await _sw.DisposeAsync().ConfigureAwait(false);
+        await _sw.DisposeAsync()
+            .NoSync();
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed.TrySetTrue())
+            return;
+
+        _ch.Writer.TryComplete();
+
+        try
+        {
+            _readerTask.GetAwaiter()
+                .GetResult();
+        }
+        catch
+        {
+            // swallow during teardown
+        }
+
+        _sw.Dispose();
     }
 }

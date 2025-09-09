@@ -121,4 +121,11 @@ public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
             await _sw.DisposeAsync().ConfigureAwait(false);
         }
     }
+
+    public void Dispose()
+    {
+        _readerTask.Dispose();
+        _cts.Dispose();
+        _sw.Dispose();
+    }
 }

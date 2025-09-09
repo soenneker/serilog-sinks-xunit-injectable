@@ -95,4 +95,9 @@ public sealed class ConcurrentInjectableTestOutputSink : IInjectableTestOutputSi
     {
         return ValueTask.CompletedTask;
     }
+
+    public void Dispose()
+    {
+        // TODO release managed resources here
+    }
 }

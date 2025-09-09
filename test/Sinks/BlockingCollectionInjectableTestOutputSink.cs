@@ -115,4 +115,10 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
 
         _queue.Dispose();
     }
+
+    public void Dispose()
+    {
+        _queue.Dispose();
+        _consumerTask.Dispose();
+    }
 }

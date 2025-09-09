@@ -91,4 +91,9 @@ public sealed class QueueInjectableTestOutputSink : IInjectableTestOutputSink
     {
         return ValueTask.CompletedTask;
     }
+
+    public void Dispose()
+    {
+        // TODO release managed resources here
+    }
 }

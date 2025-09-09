@@ -11,7 +11,7 @@ namespace Serilog.Sinks.XUnit.Injectable.Abstract;
 /// A sink to direct Serilog output to the XUnit test output via dependency injection <para/>
 /// Use as a Singleton
 /// </summary>
-public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable
+public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable, IDisposable
 {
     /// <summary>
     ///     Call this as soon as you have a new instance of the testOutputHelper (usually at the beginning of a xUnit test
