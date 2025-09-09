@@ -120,7 +120,7 @@ public class UnitFixture : IAsyncLifetime
 
         Services.AddLogging(builder =>
         {
-            builder.AddSerilog(dispose: true);
+            builder.AddSerilog(dispose: false);
         });
     }
 
