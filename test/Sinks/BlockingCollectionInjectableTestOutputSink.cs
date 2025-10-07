@@ -38,6 +38,11 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
     private static ReusableStringWriter RentWriter() =>
         _threadWriter ??= new ReusableStringWriter();
 
+    public void Complete()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);

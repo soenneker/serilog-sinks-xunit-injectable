@@ -31,6 +31,11 @@ public sealed class ConcurrentInjectableTestOutputSink : IInjectableTestOutputSi
         _fmt = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
     }
 
+    public void Complete()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);

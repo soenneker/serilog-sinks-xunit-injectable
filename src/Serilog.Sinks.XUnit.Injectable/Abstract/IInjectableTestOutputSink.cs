@@ -8,11 +8,17 @@ using Xunit.Sdk;
 namespace Serilog.Sinks.XUnit.Injectable.Abstract;
 
 /// <summary>
-/// A sink to direct Serilog output to the XUnit test output via dependency injection <para/>
-/// Use as a Singleton
+/// Serilog sink that writes to xUnit's <see cref="ITestOutputHelper"/> and/or an <see cref="IMessageSink"/>.
+/// Safe to dispose during/after test teardown without hangs. Use as a singleton.
 /// </summary>
 public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable, IDisposable
 {
+    /// <summary>
+    /// Optional early stop; disposing already does this. Call if you want the sink quiet
+    /// before you flush Serilog.
+    /// </summary>
+    void Complete();
+
     /// <summary>
     ///     Call this as soon as you have a new instance of the testOutputHelper (usually at the beginning of a xUnit test
     ///     class)

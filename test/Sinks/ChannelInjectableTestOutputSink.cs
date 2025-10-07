@@ -43,6 +43,11 @@ public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
         _readerTask = Task.Run(ReadLoop);
     }
 
+    public void Complete()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);

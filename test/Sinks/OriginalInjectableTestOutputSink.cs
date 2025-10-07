@@ -35,6 +35,11 @@ public sealed class OriginalInjectableTestOutputSink : IInjectableTestOutputSink
         _textFormatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
     }
 
+    public void Complete()
+    {
+        throw new NotImplementedException();
+    }
+
     public void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null)
     {
         _testOutputHelper = testOutputHelper;
