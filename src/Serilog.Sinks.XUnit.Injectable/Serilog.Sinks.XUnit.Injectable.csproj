@@ -44,7 +44,7 @@
         <PackageReference Include="Serilog" Version="4.3.0" />
         <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.107" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.97" />
-        <PackageReference Include="Soenneker.Atomics.Bools" Version="4.0.2" />
+        <PackageReference Include="Soenneker.Atomics.Bools" Version="4.0.3" />
         <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="4.0.8" />
         <PackageReference Include="xunit.v3.extensibility.core" Version="3.2.1" />
     </ItemGroup>
