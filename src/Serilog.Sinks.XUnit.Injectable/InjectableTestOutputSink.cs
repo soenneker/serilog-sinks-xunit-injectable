@@ -89,9 +89,10 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         try
         {
             await foreach (LogEvent evt in _ch.Reader.ReadAllAsync(ct)
-                               .ConfigureAwait(false))
+                                              .ConfigureAwait(false))
             {
-                if (ct.IsCancellationRequested) break;
+                if (ct.IsCancellationRequested)
+                    break;
 
                 ITestOutputHelper? helper = _helper; // volatile read
                 if (helper is null)
@@ -161,7 +162,8 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     public async ValueTask DisposeAsync()
     {
-        if (!_disposed.TrySetTrue()) return;
+        if (!_disposed.TrySetTrue())
+            return;
 
         _helper = null; // stop xUnit calls after this point
         _ch.Writer.TryComplete(); // 1) tell reader: no more items
@@ -170,17 +172,17 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         {
             // 2) give the reader a short window to drain cleanly
             await _readerTask.WaitAsync(_drainWait)
-                .NoSync();
+                             .NoSync();
         }
         catch (TimeoutException)
         {
             // 3) fallback: force-break the loop if it didn’t finish
             await _cts.CancelAsync()
-                .NoSync();
+                      .NoSync();
             try
             {
                 await _readerTask.WaitAsync(_cancelWait)
-                    .NoSync();
+                                 .NoSync();
             }
             catch
             {
@@ -195,7 +197,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         try
         {
             await _sw.DisposeAsync()
-                .NoSync();
+                     .NoSync();
         }
         catch
         {
@@ -206,7 +208,8 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     public void Dispose()
     {
-        if (!_disposed.TrySetTrue()) return;
+        if (!_disposed.TrySetTrue())
+            return;
 
         _helper = null;
         _ch.Writer.TryComplete();
@@ -214,7 +217,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         try
         {
             _readerTask.GetAwaiter()
-                .GetResult();
+                       .GetResult();
         }
         catch
         {
@@ -222,7 +225,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
             try
             {
                 _readerTask.GetAwaiter()
-                    .GetResult();
+                           .GetResult();
             }
             catch
             {
