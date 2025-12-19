@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Soenneker.Atomics.Bools;
+using Soenneker.Atomics.ValueBools;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
@@ -49,7 +49,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     // Only the reader loop touches this queue
     private readonly Queue<LogEvent> _pending = new();
 
-    private AtomicBool _disposed;
+    private ValueAtomicBool _disposed;
 
     public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
