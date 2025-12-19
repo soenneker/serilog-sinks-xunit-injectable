@@ -49,7 +49,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     // Only the reader loop touches this queue
     private readonly Queue<LogEvent> _pending = new();
 
-    private readonly AtomicBool _disposed = new();
+    private AtomicBool _disposed;
 
     public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
@@ -68,7 +68,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     /// <summary>Serilog pipeline entry point.</summary>
     public void Emit(LogEvent logEvent)
     {
-        if (logEvent is null || _disposed.IsTrue)
+        if (logEvent is null || _disposed.Value)
             return;
 
         _ch.Writer.TryWrite(logEvent); // non-blocking; may drop when full
@@ -76,7 +76,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     public void Complete()
     {
-        if (_disposed.IsTrue)
+        if (_disposed.Value)
             return;
 
         _helper = null; // stop xUnit writes
