@@ -45,7 +45,7 @@
         <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.110" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.102" />
         <PackageReference Include="Soenneker.Atomics.ValueBools" Version="4.0.7" />
-        <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="4.0.8" />
+        <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="4.0.9" />
         <PackageReference Include="xunit.v3.extensibility.core" Version="3.2.1" />
     </ItemGroup>
 </Project>
