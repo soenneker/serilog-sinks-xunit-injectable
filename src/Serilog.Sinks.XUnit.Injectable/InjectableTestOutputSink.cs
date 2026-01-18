@@ -165,7 +165,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         if (!_disposed.TrySetTrue())
             return;
 
-        _helper = null; // stop xUnit calls after this point
         _ch.Writer.TryComplete(); // 1) tell reader: no more items
 
         try
@@ -203,6 +202,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         {
         }
 
+        _helper = null; // stop xUnit calls after drain
         _cts.Dispose();
     }
 
@@ -211,7 +211,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         if (!_disposed.TrySetTrue())
             return;
 
-        _helper = null;
         _ch.Writer.TryComplete();
 
         try
@@ -240,6 +239,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         {
         }
 
+        _helper = null; // stop xUnit calls after drain
         _cts.Dispose();
     }
 }
