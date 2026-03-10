@@ -36,10 +36,10 @@ jobs:
           build-mode: manual
 
       - name: Restore src
-        run: dotnet restore ./src
+        run: dotnet restore ./src/Serilog.Sinks.XUnit.Injectable/
 
       - name: Build src
-        run: dotnet build ./src --no-restore -c Release
+        run: dotnet build ./src/Serilog.Sinks.XUnit.Injectable/ --no-restore -c Release
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
