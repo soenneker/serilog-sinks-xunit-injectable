@@ -1,37 +1,32 @@
-﻿using SampleApi.Utils;
+using SampleApi.Utils;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using System.Threading.Tasks;
 using AwesomeAssertions;
+using Soenneker.Tests.HostedUnit;
 using Serilog.Sinks.XUnit.Injectable.Tests.Utils;
-using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Unit;
 
-[Collection("UnitCollection")]
-public class SampleUtilTests
+[ClassDataSource<UnitHost>(Shared = SharedType.PerTestSession)]
+public sealed class SampleUtilTests : HostedUnitTest
 {
     private readonly SampleUtil _util;
 
-    private readonly UnitFixture _fixture;
-    private readonly ITestOutputHelper _testOutputHelper;
-
-    public SampleUtilTests(UnitFixture fixture, ITestOutputHelper testOutputHelper)
+    public SampleUtilTests(UnitHost host) : base(host)
     {
-        _fixture = fixture;
-        _testOutputHelper = testOutputHelper;
-        var outputSink = (IInjectableTestOutputSink) fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
-        outputSink.Inject(testOutputHelper);
+        var outputSink = (IInjectableTestOutputSink)host.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
+        outputSink.Inject(new TUnitTestOutputHelper());
 
-        _util = (SampleUtil) fixture.ServiceProvider.GetService(typeof(SampleUtil))!;
+        _util = (SampleUtil)host.ServiceProvider.GetService(typeof(SampleUtil))!;
     }
 
-    [Fact]
+    [Test]
     public void DoWork_should_result_with_log_messages()
     {
         _util.DoWork();
     }
 
-    [Fact]
+    [Test]
     public void DoWork_loop_result_with_log_messages()
     {
         for (var i = 0; i < 10; i++)
@@ -40,19 +35,19 @@ public class SampleUtilTests
         }
     }
 
-    [Fact]
+    [Test]
     public void DoWork_loop_with_inject_with_log_messages()
     {
         for (var i = 0; i < 10; i++)
         {
-            var outputSink = (IInjectableTestOutputSink) _fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
-            outputSink.Inject(_testOutputHelper);
+            var outputSink = (IInjectableTestOutputSink)Host.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
+            outputSink.Inject(new TUnitTestOutputHelper());
 
             _util.DoWork();
         }
     }
 
-    [Fact]
+    [Test]
     public async Task Logs_Are_Isolated_Per_Test()
     {
         var output1 = new MockTestOutputHelper();

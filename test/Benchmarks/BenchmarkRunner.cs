@@ -1,18 +1,17 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using BenchmarkDotNet.Reports;
 using Soenneker.Benchmarking.Extensions.Summary;
 using Soenneker.Tests.Benchmark;
-using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Benchmarks;
 
 public sealed class BenchmarkRunner : BenchmarkTest
 {
-    public BenchmarkRunner(ITestOutputHelper outputHelper) : base(outputHelper)
+    public BenchmarkRunner() : base()
     {
     }
 
-    //[Fact]
+    //[Test]
     public async ValueTask SinkBenchmark()
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<SinkBenchmark>(DefaultConf);

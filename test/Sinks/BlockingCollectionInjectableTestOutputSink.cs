@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,65 +9,49 @@ using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
-
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
-
 /// <inheritdoc cref="IInjectableTestOutputSink"/>
 public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTestOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
-
     private readonly MessageTemplateTextFormatter _formatter;
     private readonly BlockingCollection<LogEvent> _queue;
     private readonly Task _consumerTask;
-
     private ITestOutputHelper? _helper;
     private IMessageSink? _sink;
-
     private int _disposed;
-
     [ThreadStatic] private static ReusableStringWriter? _threadWriter;
-
     public BlockingCollectionInjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
         _formatter = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
         _queue = new BlockingCollection<LogEvent>();
         _consumerTask = Task.Factory.StartNew(ConsumeQueue, TaskCreationOptions.LongRunning);
     }
-
     private static ReusableStringWriter RentWriter() =>
         _threadWriter ??= new ReusableStringWriter();
-
     public void Complete()
     {
         throw new NotImplementedException();
     }
-
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
-
         Volatile.Write(ref _helper, helper);
         Volatile.Write(ref _sink, sink);
     }
-
     public void Emit(LogEvent logEvent)
     {
         ArgumentNullException.ThrowIfNull(logEvent);
-
         if (_helper == null && _sink == null)
             return;
-
         try
         {
             _queue.Add(logEvent);
         }
         catch (InvalidOperationException)
         {
-            // Queue closed
         }
     }
-
     private void ConsumeQueue()
     {
         try
@@ -75,17 +59,13 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
             foreach (LogEvent evt in _queue.GetConsumingEnumerable())
             {
                 ITestOutputHelper? helper = Volatile.Read(ref _helper);
-
                 if (helper == null)
                     continue;
-
                 ReusableStringWriter writer = RentWriter();
                 writer.Reset();
                 _formatter.Format(evt, writer);
                 string msg = writer.Finish();
-
                 Volatile.Read(ref _sink)?.OnMessage(new DiagnosticMessage(msg));
-
                 try
                 {
                     helper.WriteLine(msg);
@@ -98,29 +78,22 @@ public sealed class BlockingCollectionInjectableTestOutputSink : IInjectableTest
         }
         catch
         {
-            // ignored
         }
     }
-
     public async ValueTask DisposeAsync()
     {
         if (Interlocked.Exchange(ref _disposed, 1) != 0)
             return;
-
         _queue.CompleteAdding();
-
         try
         {
             await _consumerTask.ConfigureAwait(false);
         }
         catch
         {
-            // ignored
         }
-
         _queue.Dispose();
     }
-
     public void Dispose()
     {
         _queue.Dispose();

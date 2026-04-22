@@ -1,10 +1,10 @@
-﻿using Serilog.Events;
+using Xunit;
+using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Parsing;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Utils;
 

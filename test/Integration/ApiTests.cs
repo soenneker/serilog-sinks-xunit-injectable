@@ -1,34 +1,34 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
-using Xunit;
+using Soenneker.Tests.HostedUnit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Integration;
 
-[Collection("ApiCollection")]
-public class ApiTests
+[ClassDataSource<ApiHost>(Shared = SharedType.PerTestSession)]
+public sealed class ApiTests : HostedUnitTest
 {
     private readonly HttpClient _client;
 
-    public ApiTests(ApiFixture fixture, ITestOutputHelper testOutputHelper)
+    public ApiTests(ApiHost host) : base(host)
     {
-        var outputSink = (IInjectableTestOutputSink)fixture.ApiFactory.Services.GetService(typeof(IInjectableTestOutputSink))!;
-        outputSink.Inject(testOutputHelper);
+        var outputSink = (IInjectableTestOutputSink)host.ApiFactory.Services.GetService(typeof(IInjectableTestOutputSink))!;
+        outputSink.Inject(new TUnitTestOutputHelper());
 
-        _client = fixture.ApiFactory.CreateClient();
+        _client = host.ApiFactory.CreateClient();
     }
 
-    [Fact]
+    [Test]
     public async Task Get_should_have_log_messages_and_be_successful()
     {
         HttpResponseMessage response = await _client.GetAsync("/", TestContext.Current.CancellationToken);
         response.EnsureSuccessStatusCode();
     }
 
-    [Fact]
+    [Test]
     public async Task Get_concurrent()
     {
-        Task<HttpResponseMessage> task1= _client.GetAsync("/", TestContext.Current.CancellationToken);
+        Task<HttpResponseMessage> task1 = _client.GetAsync("/", TestContext.Current.CancellationToken);
         Task<HttpResponseMessage> task2 = _client.GetAsync("/", TestContext.Current.CancellationToken);
         Task<HttpResponseMessage> task3 = _client.GetAsync("/", TestContext.Current.CancellationToken);
 
