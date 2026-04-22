@@ -19,10 +19,5 @@
         <ProjectReference Include="..\sample\SampleApi.csproj" />
         <ProjectReference Include="..\src\Serilog.Sinks.XUnit.Injectable\Serilog.Sinks.XUnit.Injectable.csproj" />
     </ItemGroup>
-
-    <ItemGroup>
-        <Content Include="testconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Content>
-    </ItemGroup>
 </Project>
+
