@@ -16,6 +16,8 @@ public sealed class BenchmarkRunner : BenchmarkTest
     {
         Summary summary = BenchmarkDotNet.Running.BenchmarkRunner.Run<SinkBenchmark>(DefaultConf);
 
-        await summary.OutputSummaryToLog(OutputHelper, CancellationToken);
+        await summary.OutputSummaryToLog();
     }
 }
+
+

@@ -14,10 +14,10 @@ public sealed class SampleUtilTests : HostedUnitTest
 
     public SampleUtilTests(UnitHost host) : base(host)
     {
-        var outputSink = (IInjectableTestOutputSink)host.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
+        var outputSink = (IInjectableTestOutputSink)host.ServicesProvider.GetService(typeof(IInjectableTestOutputSink))!;
         outputSink.Inject(new TUnitTestOutputHelper());
 
-        _util = (SampleUtil)host.ServiceProvider.GetService(typeof(SampleUtil))!;
+        _util = (SampleUtil)host.ServicesProvider.GetService(typeof(SampleUtil))!;
     }
 
     [Test]
@@ -40,7 +40,7 @@ public sealed class SampleUtilTests : HostedUnitTest
     {
         for (var i = 0; i < 10; i++)
         {
-            var outputSink = (IInjectableTestOutputSink)Host.ServiceProvider.GetService(typeof(IInjectableTestOutputSink))!;
+            var outputSink = (IInjectableTestOutputSink)Host.ServicesProvider.GetService(typeof(IInjectableTestOutputSink))!;
             outputSink.Inject(new TUnitTestOutputHelper());
 
             _util.DoWork();

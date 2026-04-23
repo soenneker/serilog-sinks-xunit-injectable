@@ -5,6 +5,8 @@ namespace Serilog.Sinks.XUnit.Injectable.Tests.Utils;
 
 internal sealed class TUnitTestOutputHelper : ITestOutputHelper
 {
+    public string Output => string.Empty;
+
     public void Write(string message)
     {
         Console.Write(message);

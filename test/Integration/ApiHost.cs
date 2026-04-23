@@ -33,7 +33,7 @@ public sealed class ApiHost : UnitTestHost
         return base.InitializeAsync();
     }
 
-    public override async Task DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         await ApiFactory.DisposeAsync().ConfigureAwait(false);
 
