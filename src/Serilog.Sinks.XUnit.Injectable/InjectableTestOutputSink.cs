@@ -57,7 +57,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         _readerTask = Task.Run(() => ReadLoop(_cts.Token));
     }
 
-    /// <summary>Inject the current test's output helper (call at test start).</summary>
     public void Inject(ITestOutputHelper helper, IMessageSink? diagnosticSink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
@@ -65,7 +64,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         _sink = diagnosticSink;
     }
 
-    /// <summary>Serilog pipeline entry point.</summary>
     public void Emit(LogEvent logEvent)
     {
         if (logEvent is null || _disposed.Value)
@@ -206,6 +204,9 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         _cts.Dispose();
     }
 
+    /// <summary>
+    /// Releases resources used by the current instance.
+    /// </summary>
     public void Dispose()
     {
         if (!_disposed.TrySetTrue())
