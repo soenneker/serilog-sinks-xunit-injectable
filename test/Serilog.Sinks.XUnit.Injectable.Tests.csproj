@@ -9,7 +9,7 @@
 
     <ItemGroup>
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
-        <PackageReference Include="Soenneker.Tests.Benchmark" Version="4.0.116" />
+        <PackageReference Include="Soenneker.Tests.Benchmark" Version="4.0.118" />
         <PackageReference Include="Soenneker.Tests.HostedUnit" Version="4.0.93" />
         <PackageReference Include="TUnit" Version="1.56.0" />
     </ItemGroup>
