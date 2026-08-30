@@ -4,180 +4,78 @@
 [![](https://img.shields.io/github/actions/workflow/status/soenneker/serilog-sinks-xunit-injectable/codeql.yml?label=CodeQL&style=for-the-badge)](https://github.com/soenneker/serilog-sinks-xunit-injectable/actions/workflows/codeql.yml)
 
 # Serilog.Sinks.XUnit.Injectable
-### The injectable, Serilog xUnit test output sink
 
-Leverage xUnit's [`TestOutputHelper`](https://xunit.net/docs/capturing-output) across tests that share state
-
-### Common use cases
-- Integration tests (i.e. [`WebApplicationFactory`](https://docs.microsoft.com/en-us/aspnet/core/test/integration-tests?view=aspnetcore-6.0))
-- Unit tests that utilize Dependency Injection in a fixture
-
-## Why?
-When running a suite of tests, it can be expensive to build a new DI `ServiceProvider`, and even more so, a `WebApplicationFactory`. Hence, these can be stored in a xUnit fixture and reused across tests. 
-
-xUnit provides a new `TestOutputHelper` per test, and so even if you register it as a sink initially, the next test will not capture/output messages from the services inside the provider.
-
-This library addresses that issue by allowing for the `TestOutputHelper` from each test to be "injected" into the fixture as it's running. It also maintains the context of each test in the appropriate test runner window.
-
-Examples are provided for both Unit and Integration tests. For brevity, the actual injection is shown in the constructor of the test class in the examples below, but you'll probably want to leverage a base class.
-
-### xUnit Compatibility
-
-- Version 3.x: Supports xUnit 2.9.
-- Latest Version: Fully supports xUnit 3.
+A Serilog sink whose active xUnit `ITestOutputHelper` can be replaced for each test while the logger and test fixture remain shared.
 
 ## Installation
 
-```
+```bash
 dotnet add package Serilog.Sinks.XUnit.Injectable
 ```
 
----
-### Example: `WebApplicationFactory` "integration tests"
----
+## Configure the shared fixture
+
+Create one sink for the lifetime of the shared service provider or `WebApplicationFactory`, register that same instance in DI, and pass it to Serilog:
+
 ```csharp
-public class ApiFixture : IAsyncLifetime
-{
-    public WebApplicationFactory<Program> ApiFactory { get; set; } = default!;
+using Serilog;
+using Serilog.Sinks.XUnit.Injectable;
+using Serilog.Sinks.XUnit.Injectable.Abstract;
+using Serilog.Sinks.XUnit.Injectable.Extensions;
 
-    public Task InitializeAsync()
-    {
-        ApiFactory = new WebApplicationFactory<Program>();
-        ApiFactory = ApiFactory.WithWebHostBuilder(builder =>
-        {
-            // Instantiate the sink, with any configuration (like outputTemplate, formatProvider)
-            var injectableTestOutputSink = new InjectableTestOutputSink();
+var outputSink = new InjectableTestOutputSink(
+    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}");
 
-            builder.ConfigureServices(services =>
-            {
-                // Register the sink as a singleton
-                services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink); 
-            });
+services.AddSingleton<IInjectableTestOutputSink>(outputSink);
 
-            builder.UseSerilog((_, loggerConfiguration) =>
-            {
-                // Add the sink to the logger configuration
-                loggerConfiguration.WriteTo.InjectableTestOutput(injectableTestOutputSink);
-            });
-        });
-
-        return Task.CompletedTask;
-    }
-
-    public async Task DisposeAsync()
-    {
-        await ApiFactory.DisposeAsync();
-    }
-}
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.InjectableTestOutput(outputSink)
+    .CreateLogger();
 ```
 
+The sink must be the same instance used by the shared logger. Creating a new sink for each test will not redirect logs already produced by services in the fixture.
+
+## Inject each test's output helper
+
+Inject the helper before the test starts work:
+
 ```csharp
-[Collection("ApiCollection")]
-public class ApiTests
+public sealed class ApiTests
 {
     private readonly HttpClient _client;
 
-    public ApiTests(ApiFixture fixture, ITestOutputHelper testOutputHelper)
+    public ApiTests(ApiFixture fixture, ITestOutputHelper output)
     {
-        var outputSink = (IInjectableTestOutputSink)fixture.ApiFactory.Services.GetService(typeof(IInjectableTestOutputSink))!;
-        outputSink.Inject(testOutputHelper); // <-- inject the new ITestOutputHelper into the sink
+        IInjectableTestOutputSink sink =
+            fixture.Services.GetRequiredService<IInjectableTestOutputSink>();
 
-        _client = fixture.ApiFactory.CreateClient();
+        sink.Inject(output);
+        _client = fixture.CreateClient();
     }
 
     [Fact]
-    public async Task Get_should_have_log_messages_and_be_successful()
+    public async Task Get_returns_success()
     {
-        HttpResponseMessage response = await _client.GetAsync("/");
+        using HttpResponseMessage response = await _client.GetAsync("/");
         response.EnsureSuccessStatusCode();
     }
 }
 ```
 
----
-### Example: `ServiceProvider` "Fixtured unit tests"
----
-```csharp
-public class UnitFixture : IAsyncLifetime
-{
-    public ServiceProvider ServiceProvider { get; set; } = default!;
+Calling `Inject` replaces the helper and optional diagnostic message sink used for subsequent writes. Tests sharing this sink should not run concurrently: a later injection can redirect queued output from another test.
 
-    protected IServiceCollection Services { get; set; }
+Events received before a helper is available are buffered and written when a helper is injected. If xUnit rejects a write because that test has ended, the sink clears the helper and retains that event for the next injection.
 
-    public UnitFixture()
-    {
-        var injectableTestOutputSink = new InjectableTestOutputSink();
+## Capacity and disposal
 
-        Services = new ServiceCollection();
+Logging never blocks producers. The sink uses a bounded 4,096-event channel and retains at most 2,048 events while no helper is available. Events beyond either capacity are silently dropped, so this is test-output plumbing rather than durable log storage.
 
-        Services.AddSingleton<IInjectableTestOutputSink>(injectableTestOutputSink);
-        Services.AddSingleton<SampleUtil>();
+Dispose or flush the Serilog logger during fixture teardown. `Dispose` and `DisposeAsync` are idempotent; asynchronous disposal allows up to two seconds for a normal drain before cancellation. `Complete()` stops accepting events early and is normally unnecessary when the logger owns the sink.
 
-        ILogger serilogLogger = new LoggerConfiguration()
-            .WriteTo.InjectableTestOutput(injectableTestOutputSink)
-            .CreateLogger();
-
-        Log.Logger = serilogLogger;
-
-        Services.AddLogging(builder =>
-        {
-            builder.AddSerilog(dispose: false);
-        });
-    }
-
-    public virtual Task InitializeAsync()
-    {
-        ServiceProvider = Services.BuildServiceProvider();
-
-        return Task.CompletedTask;
-    }
-
-    public virtual async Task DisposeAsync()
-    {
-        await ServiceProvider.DisposeAsync();
-    }
-}
-
-```
+An optional xUnit `IMessageSink` can be supplied alongside the helper:
 
 ```csharp
-[Collection("UnitCollection")]
-public class SampleUtilTests
-{
-    private readonly SampleUtil _util;
-
-    public SampleUtilTests(UnitFixture fixture, ITestOutputHelper testOutputHelper)
-    {
-        var outputSink = (IInjectableTestOutputSink)fixture.ServiceProvider.GetService(typeof(IInjectableTestOutputSink));
-        outputSink.Inject(testOutputHelper);
-
-        _util = (SampleUtil)fixture.ServiceProvider.GetService(typeof(SampleUtil));
-    }
-
-    [Fact]
-    public void DoWork_should_result_with_log_messages()
-    {
-        _util.DoWork();
-    }
-}
+sink.Inject(output, diagnosticMessageSink);
 ```
----
-### `SampleUtil`
----
-```csharp
-public class SampleUtil
-{
-    private readonly ILogger<SampleUtil> _logger;
 
-    public SampleUtil(ILogger<SampleUtil> logger)
-    {
-        _logger = logger;
-    }
-
-    public void DoWork()
-    {
-        Log.Logger.Information("----- Did some work (Serilog logger) -----");
-        _logger.LogInformation("----- Did some work (Microsoft logger) -----");
-    }
-}
-```
+Formatted events are sent to both destinations while a helper is active.
