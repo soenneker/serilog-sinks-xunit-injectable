@@ -40,7 +40,7 @@
 
     <ItemGroup>
         <PackageReference Include="Serilog" Version="4.4.0" />
-        <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.127" />
+        <PackageReference Include="Soenneker.Extensions.Task" Version="4.0.128" />
         <PackageReference Include="Soenneker.Extensions.ValueTask" Version="4.0.119" />
         <PackageReference Include="Soenneker.Atomics.ValueBools" Version="4.0.38" />
         <PackageReference Include="Soenneker.Utils.ReusableStringWriter" Version="4.0.25" />
