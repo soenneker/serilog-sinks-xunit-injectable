@@ -162,4 +162,56 @@ public sealed class InjectableTestOutputSinkTests
         await sink.DisposeAsync();
         await sink.FlushAsync(); // sink disposed
     }
+
+    [Test]
+    public async Task Reinjecting_while_disposal_cancels_the_reader_should_not_hang()
+    {
+        var sink = new InjectableTestOutputSink();
+        // A gated first helper blocks the reader on its first write, so the dispose drain window
+        // elapses and disposal cancels the reader while the drain barrier is still queued behind
+        // it.
+        var first = new GatedTestOutputHelper();
+        var second = new MockTestOutputHelper();
+
+        sink.Inject(first);
+
+        for (var i = 0; i < 4_000; i++)
+            sink.Emit(MockTestOutputHelper.CreateEvent($"dispose-{i}"));
+
+        var reinject = Task.Run(() => sink.Inject(second));
+        await Task.Delay(TimeSpan.FromMilliseconds(300));
+
+        // Dispose while the barrier is queued: the gated reader never reaches it, so the drain
+        // times out and disposal cancels the reader mid-drain.
+        await sink.DisposeAsync();
+
+        var completed = await Task.WhenAny(reinject, Task.Delay(TimeSpan.FromSeconds(10)));
+        completed.Should().BeSameAs(reinject, because: "re-injection must not hang when disposal cancels the reader before it reaches the barrier");
+        await reinject;
+    }
+
+    [Test]
+    public async Task Flushing_while_disposal_cancels_the_reader_should_not_hang()
+    {
+        var sink = new InjectableTestOutputSink();
+        // A gated helper blocks the reader on its first write, so the dispose drain window elapses
+        // and disposal cancels the reader while the flush barrier is still queued behind it.
+        var helper = new GatedTestOutputHelper();
+
+        sink.Inject(helper);
+
+        for (var i = 0; i < 4_000; i++)
+            sink.Emit(MockTestOutputHelper.CreateEvent($"dispose-flush-{i}"));
+
+        var flush = sink.FlushAsync().AsTask();
+        await Task.Delay(TimeSpan.FromMilliseconds(300));
+
+        // Dispose while the barrier is queued: the gated reader never reaches it, so the drain
+        // times out and disposal cancels the reader mid-flush.
+        await sink.DisposeAsync();
+
+        var completed = await Task.WhenAny(flush, Task.Delay(TimeSpan.FromSeconds(10)));
+        completed.Should().BeSameAs(flush, because: "the flush must not hang when disposal cancels the reader before it reaches the barrier");
+        await flush;
+    }
 }

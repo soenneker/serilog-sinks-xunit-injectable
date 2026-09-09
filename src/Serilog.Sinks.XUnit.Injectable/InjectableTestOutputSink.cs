@@ -26,6 +26,11 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     private static readonly TimeSpan _drainWait = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan _cancelWait = TimeSpan.FromSeconds(3);
 
+    // Bounded wait for a drain barrier: covers the worst-case disposal path (drain + cancel) so a
+    // concurrent Inject/FlushAsync can never hang if the reader is cancelled before it reaches the
+    // barrier.
+    private static readonly TimeSpan _barrierWait = TimeSpan.FromSeconds(5);
+
     private readonly MessageTemplateTextFormatter _fmt;
 
     /// <summary>
@@ -71,6 +76,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     /// Replaces the active output helper after draining any output still queued for the previous one.
     /// Intended to be called at a test boundary (when switching from one test to the next); it is not
     /// designed to run concurrently with <see cref="Emit"/> from multiple tests at the same time.
+    /// The drain is bounded, so this never hangs even if the sink is disposed concurrently.
     /// </summary>
     public void Inject(ITestOutputHelper helper, IMessageSink? diagnosticSink = null)
     {
@@ -87,6 +93,8 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 
     /// <summary>
     /// Waits until the reader has written every event enqueued so far to the currently-injected helper.
+    /// The wait is bounded; if disposal races the flush and cancels the reader, it returns without
+    /// the drain guarantee.
     /// </summary>
     public async ValueTask FlushAsync()
     {
@@ -104,7 +112,14 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
             return;
         }
 
-        await barrier.Task.ConfigureAwait(false);
+        try
+        {
+            await barrier.Task.WaitAsync(_barrierWait).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            // disposal raced the flush and cancelled the reader; proceed without the drain guarantee
+        }
     }
 
     private void DrainCurrentHelper()
@@ -125,7 +140,14 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
             return;
         }
 
-        barrier.Task.GetAwaiter().GetResult();
+        try
+        {
+            barrier.Task.WaitAsync(_barrierWait).GetAwaiter().GetResult();
+        }
+        catch (TimeoutException)
+        {
+            // disposal raced the drain and cancelled the reader; proceed without the drain guarantee
+        }
     }
 
     public void Emit(LogEvent logEvent)
@@ -187,6 +209,13 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         catch
         {
             // never let logging crash tests
+        }
+        finally
+        {
+            // If the loop exits early (e.g., cancellation during disposal), complete any barrier that
+            // was already enqueued so a concurrent Inject/FlushAsync returns promptly.
+            while (_ch.Reader.TryRead(out SinkItem item))
+                item.Barrier?.TrySetResult();
         }
     }
 
