@@ -29,6 +29,10 @@ public sealed class QueueInjectableTestOutputSink : IInjectableTestOutputSink
     {
         throw new NotImplementedException();
     }
+    public ValueTask FlushAsync()
+    {
+        return ValueTask.CompletedTask; // synchronous sink: events are written directly, nothing to flush
+    }
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
