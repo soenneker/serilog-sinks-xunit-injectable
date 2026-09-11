@@ -26,6 +26,14 @@ public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable, ID
     void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null);
 
     /// <summary>
+    /// Waits until the reader has written every event enqueued so far to the currently-injected helper.
+    /// Does not close the channel; the sink remains usable after this call. Use this before reading
+    /// the helper's output so validation is deterministic.
+    /// </summary>
+    /// <returns>A <see cref="ValueTask"/> that completes once the pending output has been written.</returns>
+    ValueTask FlushAsync();
+
+    /// <summary>
     /// Enqueues an event without blocking. Events are buffered while no helper is available and may be dropped when bounded capacity is exhausted.
     /// </summary>
     /// <param name="logEvent">The event being logged</param>
