@@ -12,6 +12,10 @@ on:
 env:
   PipelineEnvironment: true
 
+permissions:
+  contents: read
+  id-token: write
+
 jobs:
   publish-package:
     runs-on: ubuntu-latest
@@ -40,8 +44,14 @@ jobs:
       - name: Pack
         run: dotnet pack --no-build --configuration Release --output .
 
+      - name: Log in to NuGet
+        uses: NuGet/login@v1
+        id: nuget-login
+        with:
+          user: soenneker
+
       - name: Publish to nuGet
-        run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{ secrets.NUGET__TOKEN }} --skip-duplicate
+        run: dotnet nuget push **/*.nupkg --source 'https://api.nuget.org/v3/index.json' --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }} --skip-duplicate
 
       - name: Add GitHub NuGet Source
         run: |
