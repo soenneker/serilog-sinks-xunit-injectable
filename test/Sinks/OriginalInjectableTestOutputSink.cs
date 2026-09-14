@@ -26,6 +26,10 @@ public sealed class OriginalInjectableTestOutputSink : IInjectableTestOutputSink
     {
         throw new NotImplementedException();
     }
+    public ValueTask FlushAsync()
+    {
+        return ValueTask.CompletedTask; // synchronous sink: nothing is buffered
+    }
     public void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null)
     {
         _testOutputHelper = testOutputHelper;

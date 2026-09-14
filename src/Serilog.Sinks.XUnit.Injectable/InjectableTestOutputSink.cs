@@ -26,14 +26,29 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     private static readonly TimeSpan _drainWait = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan _cancelWait = TimeSpan.FromSeconds(3);
 
+    // Bounded wait for a drain barrier: covers the worst-case disposal path (drain + cancel) so a
+    // concurrent Inject/FlushAsync can never hang if the reader is cancelled before it reaches the
+    // barrier.
+    private static readonly TimeSpan _barrierWait = TimeSpan.FromSeconds(5);
+
     private readonly MessageTemplateTextFormatter _fmt;
 
-    // Bounded channel prevents infinite growth if tests end or helper is missing.
-    private readonly Channel<LogEvent> _ch = Channel.CreateBounded<LogEvent>(new BoundedChannelOptions(_channelCapacity)
+    /// <summary>
+    /// Bounded channel prevents infinite growth if tests end or helper is missing.
+    /// Items carry either a log event or a drain barrier (used to deterministically wait for
+    /// the reader to have written everything enqueued before it).
+    /// </summary>
+    /// <remarks>
+    /// <see cref="BoundedChannelFullMode.Wait"/> (not DropWrite) is used so the drain barrier,
+    /// written via WriteAsync, is never dropped when the channel is full: it blocks until the
+    /// reader frees space and is therefore guaranteed to be enqueued. Normal log events keep
+    /// using TryWrite, which is best-effort and drops when full (see <see cref="Emit"/>).
+    /// </remarks>
+    private readonly Channel<SinkItem> _ch = Channel.CreateBounded<SinkItem>(new BoundedChannelOptions(_channelCapacity)
     {
         SingleReader = true,
         SingleWriter = false,
-        FullMode = BoundedChannelFullMode.DropWrite,
+        FullMode = BoundedChannelFullMode.Wait,
         AllowSynchronousContinuations = false
     });
 
@@ -57,11 +72,82 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         _readerTask = Task.Run(() => ReadLoop(_cts.Token));
     }
 
+    /// <summary>
+    /// Replaces the active output helper after draining any output still queued for the previous one.
+    /// Intended to be called at a test boundary (when switching from one test to the next); it is not
+    /// designed to run concurrently with <see cref="Emit"/> from multiple tests at the same time.
+    /// The drain is bounded, so this never hangs even if the sink is disposed concurrently.
+    /// </summary>
     public void Inject(ITestOutputHelper helper, IMessageSink? diagnosticSink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
+
+        // Drain the previously-injected helper first so any output still queued for it is
+        // written there before we re-point. Otherwise the reader (which reads _helper per
+        // event) would write the previous test's leftover lines to the newly injected helper.
+        DrainCurrentHelper();
+
         _helper = helper; // publish to reader
         _sink = diagnosticSink;
+    }
+
+    /// <summary>
+    /// Waits until the reader has written every event enqueued so far to the currently-injected helper.
+    /// The wait is bounded; if disposal races the flush and cancels the reader, it returns without
+    /// the drain guarantee.
+    /// </summary>
+    public async ValueTask FlushAsync()
+    {
+        if (_disposed.Value || _helper is null)
+            return;
+
+        var barrier = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        try
+        {
+            await _ch.Writer.WriteAsync(new SinkItem(null, barrier)).ConfigureAwait(false);
+        }
+        catch (ChannelClosedException)
+        {
+            return;
+        }
+
+        try
+        {
+            await barrier.Task.WaitAsync(_barrierWait).ConfigureAwait(false);
+        }
+        catch (TimeoutException)
+        {
+            // disposal raced the flush and cancelled the reader; proceed without the drain guarantee
+        }
+    }
+
+    private void DrainCurrentHelper()
+    {
+        if (_disposed.Value || _helper is null)
+            return;
+
+        var barrier = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        try
+        {
+            // AsTask() yields a real Task so GetResult() blocks until the channel has space under
+            // Wait mode; observing the pending async ValueTask directly would throw "not completed".
+            _ch.Writer.WriteAsync(new SinkItem(null, barrier)).AsTask().GetAwaiter().GetResult();
+        }
+        catch (ChannelClosedException)
+        {
+            return;
+        }
+
+        try
+        {
+            barrier.Task.WaitAsync(_barrierWait).GetAwaiter().GetResult();
+        }
+        catch (TimeoutException)
+        {
+            // disposal raced the drain and cancelled the reader; proceed without the drain guarantee
+        }
     }
 
     public void Emit(LogEvent logEvent)
@@ -69,7 +155,7 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         if (logEvent is null || _disposed.Value)
             return;
 
-        _ch.Writer.TryWrite(logEvent); // non-blocking; may drop when full
+        _ch.Writer.TryWrite(new SinkItem(logEvent, null)); // non-blocking; may drop when full
     }
 
     public void Complete()
@@ -86,11 +172,19 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
     {
         try
         {
-            await foreach (LogEvent evt in _ch.Reader.ReadAllAsync(ct)
-                                              .ConfigureAwait(false))
+            await foreach (var item in _ch.Reader.ReadAllAsync(ct).ConfigureAwait(false))
             {
                 if (ct.IsCancellationRequested)
                     break;
+
+                if (item.Barrier is not null)
+                {
+                    // Everything enqueued before this barrier has been processed.
+                    item.Barrier.TrySetResult();
+                    continue;
+                }
+
+                var evt = item.Event!;
 
                 ITestOutputHelper? helper = _helper; // volatile read
                 if (helper is null)
@@ -115,6 +209,13 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         catch
         {
             // never let logging crash tests
+        }
+        finally
+        {
+            // If the loop exits early (e.g., cancellation during disposal), complete any barrier that
+            // was already enqueued so a concurrent Inject/FlushAsync returns promptly.
+            while (_ch.Reader.TryRead(out SinkItem item))
+                item.Barrier?.TrySetResult();
         }
     }
 
@@ -243,4 +344,6 @@ public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
         _helper = null; // stop xUnit calls after drain
         _cts.Dispose();
     }
+
+    private readonly record struct SinkItem(LogEvent? Event, TaskCompletionSource? Barrier);
 }

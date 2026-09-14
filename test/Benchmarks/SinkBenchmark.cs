@@ -5,6 +5,7 @@ using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
 using Serilog.Events;
 using Serilog.Parsing;
+using Serilog.Sinks.XUnit.Injectable;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
 using Serilog.Sinks.XUnit.Injectable.Tests.Utils;
@@ -13,7 +14,7 @@ namespace Serilog.Sinks.XUnit.Injectable.Tests.Benchmarks;
 
 [ThreadingDiagnoser]
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Throughput, RuntimeMoniker.Net90, launchCount: 1, warmupCount: 1, iterationCount: 1)]
+[SimpleJob(RunStrategy.Throughput, RuntimeMoniker.Net10_0, launchCount: 1, warmupCount: 1, iterationCount: 1)]
 public class SinkBenchmark
 {
     // each thread will execute this many emits per iteration
@@ -29,6 +30,7 @@ public class SinkBenchmark
     private IInjectableTestOutputSink _cc = null!;
     private IInjectableTestOutputSink _block = null!;
     private IInjectableTestOutputSink _chan = null!;
+    private IInjectableTestOutputSink _injectable = null!;
 
     private readonly MockTestOutputHelper _helper = new();
 
@@ -43,8 +45,9 @@ public class SinkBenchmark
         _cc = new ConcurrentInjectableTestOutputSink();
         _block = new BlockingCollectionInjectableTestOutputSink();
         _chan = new ChannelInjectableTestOutputSink();
+        _injectable = new InjectableTestOutputSink();
 
-        foreach (IInjectableTestOutputSink s in new[] {_orig, _queue, _cc, _block, _chan})
+        foreach (IInjectableTestOutputSink s in new[] {_orig, _queue, _cc, _block, _chan, _injectable})
             s.Inject(_helper);
     }
 
@@ -68,4 +71,7 @@ public class SinkBenchmark
 
     [Benchmark]
     public async Task Channel() => await RunAsync(_chan);
+
+    [Benchmark]
+    public async Task Injectable() => await RunAsync(_injectable);
 }
