@@ -34,6 +34,10 @@ public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
     {
         throw new NotImplementedException();
     }
+    public ValueTask FlushAsync()
+    {
+        return ValueTask.CompletedTask; // benchmark reference sink: FlushAsync not implemented
+    }
     public void Inject(ITestOutputHelper helper, IMessageSink? sink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
