@@ -19,17 +19,25 @@ public interface IInjectableTestOutputSink : ILogEventSink, IAsyncDisposable, ID
     void Complete();
 
     /// <summary>
-    /// Replaces the output helper and optional diagnostic sink used for subsequent queued writes.
+    /// Replaces the output helper and optional diagnostic sink captured by subsequent events. Already queued events retain their original destination.
     /// </summary>
     /// <param name="testOutputHelper">The <see cref="ITestOutputHelper" /> that will be written to.</param>
     /// <param name="messageSink">The optional xUnit message sink that receives the same formatted events.</param>
     void Inject(ITestOutputHelper testOutputHelper, IMessageSink? messageSink = null);
 
     /// <summary>
-    /// Enqueues an event without blocking. Events are buffered while no helper is available and may be dropped when bounded capacity is exhausted.
+    /// Enqueues an event without blocking. Events are buffered before the first injection and may be dropped when bounded capacity is exhausted.
     /// </summary>
     /// <param name="logEvent">The event being logged</param>
     new void Emit(LogEvent logEvent);
+
+    /// <summary>
+    /// Waits until previously queued events have been processed, without closing the sink.
+    /// Events dropped at capacity or rejected by a helper cannot be recovered. Startup events
+    /// remain buffered until the first injection; inject a helper before flushing those events.
+    /// Call before the test ends to keep its output helper alive while queued writes finish.
+    /// </summary>
+    ValueTask FlushAsync();
 
     /// <summary>
     /// Completes the queue, drains it when possible, and releases the sink. This operation is idempotent.

@@ -1,246 +1,205 @@
-﻿using Serilog.Events;
+using Serilog.Events;
 using Serilog.Formatting.Display;
 using Serilog.Sinks.XUnit.Injectable.Abstract;
-using Soenneker.Extensions.Task;
-using Soenneker.Extensions.ValueTask;
 using Soenneker.Utils.ReusableStringWriter;
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Soenneker.Atomics.ValueBools;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 
 namespace Serilog.Sinks.XUnit.Injectable;
 
-///<inheritdoc cref="IInjectableTestOutputSink"/>
 public sealed class InjectableTestOutputSink : IInjectableTestOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
-    private const int _backlogCap = 2048; // limit in-memory backlog when helper isn't available
-    private const int _channelCapacity = 4096; // apply backpressure under heavy logging
-
-    private static readonly TimeSpan _drainWait = TimeSpan.FromSeconds(2);
-    private static readonly TimeSpan _cancelWait = TimeSpan.FromSeconds(3);
-
+    private const int _backlogCap = 2048;
+    private readonly object _gate = new();
     private readonly MessageTemplateTextFormatter _fmt;
-
-    // Bounded channel prevents infinite growth if tests end or helper is missing.
-    private readonly Channel<LogEvent> _ch = Channel.CreateBounded<LogEvent>(new BoundedChannelOptions(_channelCapacity)
+    private readonly ReusableStringWriter _sw = new();
+    // TryWrite drops overflowing events; WriteAsync lets flush barriers wait for capacity.
+    private readonly Channel<WorkItem> _ch = Channel.CreateBounded<WorkItem>(new BoundedChannelOptions(4096)
     {
         SingleReader = true,
         SingleWriter = false,
-        FullMode = BoundedChannelFullMode.DropWrite,
+        FullMode = BoundedChannelFullMode.Wait,
         AllowSynchronousContinuations = false
     });
-
+    private readonly Queue<LogEvent> _pending = new();
     private readonly CancellationTokenSource _cts = new();
     private readonly Task _readerTask;
+    private Target? _target;
+    private bool _completed;
+    private Task? _disposeTask;
 
-    private readonly ReusableStringWriter _sw = new();
-
-    // Volatile so producers/reader see latest references without locks
-    private volatile ITestOutputHelper? _helper;
-    private volatile IMessageSink? _sink;
-
-    // Only the reader loop touches this queue
-    private readonly Queue<LogEvent> _pending = new();
-
-    private ValueAtomicBool _disposed;
+    private sealed record Target(ITestOutputHelper Helper, IMessageSink? Sink);
+    private readonly record struct WorkItem(LogEvent? Event, Target? Target, TaskCompletionSource? Barrier = null);
 
     public InjectableTestOutputSink(string outputTemplate = _defaultTemplate, IFormatProvider? formatProvider = null)
     {
         _fmt = new MessageTemplateTextFormatter(outputTemplate, formatProvider);
-        _readerTask = Task.Run(() => ReadLoop(_cts.Token));
+        _readerTask = Task.Run(ReadLoop);
     }
 
     public void Inject(ITestOutputHelper helper, IMessageSink? diagnosticSink = null)
     {
         ArgumentNullException.ThrowIfNull(helper);
-        _helper = helper; // publish to reader
-        _sink = diagnosticSink;
+        lock (_gate)
+        {
+            if (_completed)
+                return;
+
+            _target = new Target(helper, diagnosticSink);
+            // Only startup events are unassigned. A failed helper never creates a new backlog.
+            while (_pending.TryDequeue(out LogEvent? evt))
+                _ch.Writer.TryWrite(new WorkItem(evt, _target));
+        }
     }
 
     public void Emit(LogEvent logEvent)
     {
-        if (logEvent is null || _disposed.Value)
+        if (logEvent is null)
             return;
 
-        _ch.Writer.TryWrite(logEvent); // non-blocking; may drop when full
+        lock (_gate)
+        {
+            if (_completed)
+                return;
+
+            if (_target is null)
+            {
+                if (_pending.Count < _backlogCap)
+                    _pending.Enqueue(logEvent);
+                return;
+            }
+
+            _ch.Writer.TryWrite(new WorkItem(logEvent, _target));
+        }
     }
 
     public void Complete()
     {
-        if (_disposed.Value)
-            return;
-
-        _helper = null; // stop xUnit writes
-        _ch.Writer.TryComplete(); // prefer graceful drain
-        // optional: don't cancel here; let Dispose handle fallback cancel on timeout
+        lock (_gate)
+        {
+            _completed = true;
+            _target = null;
+            _pending.Clear();
+            _ch.Writer.TryComplete();
+        }
     }
 
-    private async Task ReadLoop(CancellationToken ct)
+    public async ValueTask FlushAsync()
+    {
+        var barrier = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        try
+        {
+            await _ch.Writer.WriteAsync(new WorkItem(null, null, barrier)).ConfigureAwait(false);
+        }
+        catch (ChannelClosedException)
+        {
+            await _readerTask.ConfigureAwait(false);
+            return;
+        }
+
+        // Completion/cancellation of the reader must also release waiting flush callers.
+        await Task.WhenAny(barrier.Task, _readerTask).ConfigureAwait(false);
+        if (!barrier.Task.IsCompletedSuccessfully)
+            await _readerTask.ConfigureAwait(false);
+    }
+
+    private async Task ReadLoop()
     {
         try
         {
-            await foreach (LogEvent evt in _ch.Reader.ReadAllAsync(ct)
-                                              .ConfigureAwait(false))
+            await foreach (WorkItem item in _ch.Reader.ReadAllAsync(_cts.Token).ConfigureAwait(false))
             {
-                if (ct.IsCancellationRequested)
+                if (_cts.IsCancellationRequested)
                     break;
-
-                ITestOutputHelper? helper = _helper; // volatile read
-                if (helper is null)
-                {
-                    if (_pending.Count < _backlogCap)
-                        _pending.Enqueue(evt);
-                    continue;
-                }
-
-                // Flush any backlog that accumulated before helper arrived
-                while (!ct.IsCancellationRequested && _pending.Count > 0)
-                    Write(_pending.Dequeue(), helper);
-
-                if (!ct.IsCancellationRequested)
-                    Write(evt, helper);
+                if (item.Barrier is not null)
+                    item.Barrier.TrySetResult();
+                else
+                    Write(item.Event!, item.Target!);
             }
         }
         catch (OperationCanceledException)
         {
-            // expected during teardown
         }
-        catch
+        finally
         {
-            // never let logging crash tests
+            _ch.Writer.TryComplete();
+            while (_ch.Reader.TryRead(out _)) { }
+            await _sw.DisposeAsync().ConfigureAwait(false);
+            _cts.Dispose();
         }
     }
 
-    private void Write(LogEvent evt, ITestOutputHelper helper)
+    private void Write(LogEvent evt, Target target)
     {
         try
         {
             _sw.Reset();
             _fmt.Format(evt, _sw);
             string message = _sw.Finish();
-
             try
             {
-                _sink?.OnMessage(new DiagnosticMessage(message));
+                target.Sink?.OnMessage(new DiagnosticMessage(message));
             }
             catch
             {
-                /* ignore */
             }
-
             try
             {
-                helper.WriteLine(message);
-            }
-            catch (InvalidOperationException)
-            {
-                // test finished; helper invalid
-                _helper = null;
-
-                if (_pending.Count < _backlogCap)
-                    _pending.Enqueue(evt);
+                target.Helper.WriteLine(message);
             }
             catch
             {
-                _helper = null;
+                // A finished test's output cannot be retried against another test's helper.
             }
         }
         catch
         {
-            // swallow formatting/writing failures
+            // Logging must not fail a test.
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        if (!_disposed.TrySetTrue())
-            return;
+        lock (_gate)
+        {
+            Complete();
+            return new ValueTask(_disposeTask ??= DrainAsync());
+        }
+    }
 
-        _ch.Writer.TryComplete(); // 1) tell reader: no more items
-
+    private async Task DrainAsync()
+    {
         try
         {
-            // 2) give the reader a short window to drain cleanly
-            await _readerTask.WaitAsync(_drainWait)
-                             .NoSync();
+            await _readerTask.WaitAsync(TimeSpan.FromSeconds(2)).ConfigureAwait(false);
         }
         catch (TimeoutException)
         {
-            // 3) fallback: force-break the loop if it didn’t finish
-            await _cts.CancelAsync()
-                      .NoSync();
             try
             {
-                await _readerTask.WaitAsync(_cancelWait)
-                                 .NoSync();
+                await _cts.CancelAsync().ConfigureAwait(false);
             }
-            catch
+            catch (ObjectDisposedException)
             {
-                /* swallow during teardown */
+                // The reader finished between the timeout and cancellation.
             }
-        }
-        catch (OperationCanceledException)
-        {
-            /* ok */
-        }
-
-        try
-        {
-            await _sw.DisposeAsync()
-                     .NoSync();
-        }
-        catch
-        {
-        }
-
-        _helper = null; // stop xUnit calls after drain
-        _cts.Dispose();
-    }
-
-    /// <summary>
-    /// Releases resources used by the current instance.
-    /// </summary>
-    public void Dispose()
-    {
-        if (!_disposed.TrySetTrue())
-            return;
-
-        _ch.Writer.TryComplete();
-
-        try
-        {
-            _readerTask.GetAwaiter()
-                       .GetResult();
-        }
-        catch
-        {
-            _cts.Cancel();
             try
             {
-                _readerTask.GetAwaiter()
-                           .GetResult();
+                await _readerTask.WaitAsync(TimeSpan.FromSeconds(3)).ConfigureAwait(false);
             }
-            catch
+            catch (TimeoutException)
             {
+                // A blocked helper cannot be interrupted. The reader owns resource cleanup.
             }
         }
-
-        try
-        {
-            _sw.Dispose();
-        }
-        catch
-        {
-        }
-
-        _helper = null; // stop xUnit calls after drain
-        _cts.Dispose();
     }
+
+    public void Dispose() => DisposeAsync().AsTask().GetAwaiter().GetResult();
 }

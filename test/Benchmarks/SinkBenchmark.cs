@@ -1,71 +1,74 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Engines;
 using BenchmarkDotNet.Jobs;
+using Serilog.Core;
 using Serilog.Events;
 using Serilog.Parsing;
-using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
-using Serilog.Sinks.XUnit.Injectable.Tests.Utils;
+using Xunit;
 
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Benchmarks;
 
 [ThreadingDiagnoser]
 [MemoryDiagnoser]
-[SimpleJob(RunStrategy.Throughput, RuntimeMoniker.Net90, launchCount: 1, warmupCount: 1, iterationCount: 1)]
+[SimpleJob(RunStrategy.Throughput, RuntimeMoniker.Net10_0, launchCount: 1, warmupCount: 1, iterationCount: 1)]
 public class SinkBenchmark
 {
-    // each thread will execute this many emits per iteration
     [Params(1, 8, 16)] public int Degree;
     [Params(10, 10_000, 100_000)] public int EventsTotal;
-
-    // BenchmarkDotNet will spin up a fresh *instance of this class* per thread,
-    // so the fields below are already thread-local; no further protection needed.
     private LogEvent _evt = null!;
-
-    private IInjectableTestOutputSink _orig = null!;
-    private IInjectableTestOutputSink _queue = null!;
-    private IInjectableTestOutputSink _cc = null!;
-    private IInjectableTestOutputSink _block = null!;
-    private IInjectableTestOutputSink _chan = null!;
-
-    private readonly MockTestOutputHelper _helper = new();
+    private readonly NullOutputHelper _helper = new();
 
     [GlobalSetup]
     public void Setup()
     {
-        MessageTemplate template = new MessageTemplateParser().Parse("Benchmark {Value}");
-        _evt = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, exception: null, messageTemplate: template, properties: []);
-
-        _orig = new OriginalInjectableTestOutputSink();
-        _queue = new QueueInjectableTestOutputSink();
-        _cc = new ConcurrentInjectableTestOutputSink();
-        _block = new BlockingCollectionInjectableTestOutputSink();
-        _chan = new ChannelInjectableTestOutputSink();
-
-        foreach (IInjectableTestOutputSink s in new[] {_orig, _queue, _cc, _block, _chan})
-            s.Inject(_helper);
+        MessageTemplate template = new MessageTemplateParser().Parse("Benchmark event");
+        _evt = new LogEvent(DateTimeOffset.UtcNow, LogEventLevel.Information, null, template, []);
     }
 
-    private void Produce(IInjectableTestOutputSink sink) =>
+    private void Produce(ILogEventSink sink) =>
         Parallel.For(0, EventsTotal, new ParallelOptions {MaxDegreeOfParallelism = Degree}, _ => sink.Emit(_evt));
 
-    private async Task RunAsync(IInjectableTestOutputSink sink)
+    // Each invocation includes construction, production, and drain; no disposed sink is reused.
+    private async Task RunAsync(IBenchmarkOutputSink sink)
     {
-        Produce(sink);
-        await sink.DisposeAsync();
+        await using (sink)
+        {
+            sink.Inject(_helper);
+            Produce(sink);
+        }
     }
 
     [Benchmark]
-    public async Task Queue() => await RunAsync(_queue);
+    public Task Queue() => RunAsync(new QueueInjectableTestOutputSink());
 
     [Benchmark]
-    public async Task ConcurrentQueue() => await RunAsync(_cc);
+    public Task ConcurrentQueue() => RunAsync(new ConcurrentInjectableTestOutputSink());
 
     [Benchmark]
-    public async Task BlockingCollection() => await RunAsync(_block);
+    public Task BlockingCollection() => RunAsync(new BlockingCollectionInjectableTestOutputSink());
 
     [Benchmark]
-    public async Task Channel() => await RunAsync(_chan);
+    public Task Channel() => RunAsync(new ChannelInjectableTestOutputSink());
+
+    // The production sink is bounded and may drop events under load, unlike unbounded variants.
+    [Benchmark]
+    public async Task Production()
+    {
+        await using var sink = new InjectableTestOutputSink();
+        sink.Inject(_helper);
+        Produce(sink);
+        await sink.FlushAsync();
+    }
+
+    private sealed class NullOutputHelper : ITestOutputHelper
+    {
+        public string Output => string.Empty;
+        public void Write(string message) { }
+        public void Write(string format, params object[] args) { }
+        public void WriteLine(string message) { }
+        public void WriteLine(string format, params object[] args) { }
+    }
 }

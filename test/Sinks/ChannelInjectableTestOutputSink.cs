@@ -5,14 +5,12 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Serilog.Events;
 using Serilog.Formatting.Display;
-using Serilog.Sinks.XUnit.Injectable.Abstract;
 using Soenneker.Utils.ReusableStringWriter;
 using Xunit;
 using Xunit.Sdk;
 using Xunit.v3;
 namespace Serilog.Sinks.XUnit.Injectable.Tests.Sinks;
-/// <inheritdoc cref="IInjectableTestOutputSink"/>
-public sealed class ChannelInjectableTestOutputSink : IInjectableTestOutputSink
+public sealed class ChannelInjectableTestOutputSink : IBenchmarkOutputSink
 {
     private const string _defaultTemplate = "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{Exception}";
     private readonly MessageTemplateTextFormatter _fmt;
