@@ -24,11 +24,11 @@ jobs:
 
       - name: Setting up build version
         run: |
-          echo "BUILD_VERSION=4.0.${GITHUB_RUN_NUMBER}" >> "${GITHUB_ENV}"
+          echo "BUILD_VERSION=11.0.${GITHUB_RUN_NUMBER}" >> "${GITHUB_ENV}"
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 10.0.402
+          dotnet-version: 11.0.100-rc.3.26522.148
 
       - run: dotnet restore
         name: Install dependencies
