@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-dotnet@v6
         with:
-          dotnet-version: 11.0.100-rc.3.26522.148
+          dotnet-version: 11.0.100
 
       - run: dotnet restore
         name: Install dependencies
