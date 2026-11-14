@@ -13,7 +13,7 @@
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
         <PackageReference Include="Soenneker.Tests.Benchmark" Version="11.0.238" />
         <PackageReference Include="Soenneker.Tests.HostedUnit" Version="11.0.376" />
-        <PackageReference Include="TUnit" Version="1.84.0" />
+        <PackageReference Include="TUnit" Version="1.85.0" />
     </ItemGroup>
 
     <ItemGroup>
