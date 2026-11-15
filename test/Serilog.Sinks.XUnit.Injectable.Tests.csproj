@@ -11,7 +11,7 @@
     <ItemGroup>
         <PackageReference Include="AwesomeAssertions" Version="9.6.0" />
 <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="11.0.0" />
-        <PackageReference Include="Soenneker.Tests.Benchmark" Version="11.0.239" />
+        <PackageReference Include="Soenneker.Tests.Benchmark" Version="11.0.240" />
         <PackageReference Include="Soenneker.Tests.HostedUnit" Version="11.0.377" />
         <PackageReference Include="TUnit" Version="1.85.0" />
     </ItemGroup>
